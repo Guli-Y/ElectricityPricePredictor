@@ -61,10 +61,10 @@ Functionnal test with a script:
 ```bash
   $ cd /tmp
   $ electricity_price_predictor-run
-``` 
+```
 
 # Continus integration
-## Github 
+## Github
 Every push of `master` branch will execute `.github/workflows/pythonpackages.yml` docker jobs.
 ## Gitlab
 Every push of `master` branch will execute `.gitlab-ci.yml` docker jobs.
