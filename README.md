@@ -6,7 +6,7 @@
 
 Please document the project the better you can.
 
-# Stratup the project
+# Startup the project
 
 The initial setup.
 
