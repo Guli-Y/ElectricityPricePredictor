@@ -9,6 +9,7 @@ import pandas as pd
 # Import from electricity_price_predictor
 import electricity_price_predictor
 from electricity_price_predictor.lib import clean_data
+from electricity_price_predictor.data import fetch_data
 
 if __name__ == '__main__':
     usage = '%(prog)s'
