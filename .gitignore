@@ -10,3 +10,5 @@ groupama/data/base_pno.*
 .DS_Store
 .idea/
 /raw_data/
+DataMerging.ipynb
+/notebooks/DataMerging.ipynb
