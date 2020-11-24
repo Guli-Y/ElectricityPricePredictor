@@ -18,7 +18,7 @@ def get_price(path='../raw_data/price/'):
     df = df.reset_index(drop=True)
     df.columns = ['time', 'price']
     df['time'] = df.time.str[:16]
-    df = df.iloc[:51726, :]
+    df = df.iloc[:51726, :] # filtering the timestamps till 25.11.2020
     return df
 
 def get_load(path='../raw_data/load/'):
