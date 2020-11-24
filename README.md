@@ -2,7 +2,7 @@
 - Document here the project: electricity_price_predictor
 - Description: Project Description
 - Data Source:
-- Type of analysis:mmmmm
+- Type of analysis:
 -
 
 Please document the project the better you can.
