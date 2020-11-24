@@ -1,0 +1,15 @@
+MANIFEST.in
+README.md
+setup.py
+electricity_price_predictor/__init__.py
+electricity_price_predictor/data.py
+electricity_price_predictor/lib.py
+electricity_price_predictor.egg-info/PKG-INFO
+electricity_price_predictor.egg-info/SOURCES.txt
+electricity_price_predictor.egg-info/dependency_links.txt
+electricity_price_predictor.egg-info/not-zip-safe
+electricity_price_predictor.egg-info/top_level.txt
+electricity_price_predictor/data/data.csv.gz
+scripts/electricity_price_predictor-run
+tests/__init__.py
+tests/lib_test.py
