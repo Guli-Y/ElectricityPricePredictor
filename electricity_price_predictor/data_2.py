@@ -19,7 +19,7 @@ def get_price(path='../raw_data/price/'):
     df.columns = ['time', 'price']
     df['time'] = df.time.str[:16]
     df = df[df.price!='-'] # filtering the timestamps till 24.11.2020
-    df['time'] = df.time.astype('datetime64')
+    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
     df['price'] = df.price.astype('float')
     return df
 
