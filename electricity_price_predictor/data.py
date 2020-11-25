@@ -46,7 +46,8 @@ def get_datetime(df):
     # create new column 'time' by formatting the original time column to get single timepoint instead of a range
     df['time'] = column.apply(lambda _: _[:16])
     # convert new time column from str to timestamp
-    df['time'] = pd.to_datetime(df['time'])
+    df['time'] = pd.to_datetime(df['time'] , format="%d-%m-%Y %H%M", errors='ignore')
+
 
     return df
 
@@ -62,7 +63,7 @@ def fetch_data(path):
     df = get_datetime(df)
 
     # date up until
-    idx = (df[df['time'] == '2020-11-23 23:00:00'].index)[0] + 1 # valid time frame
+    idx = (df[df['time'] == '23.11.2020 23:00'].index)[0] + 1 # valid time frame
     df = df.iloc[:idx]
 
     try:
