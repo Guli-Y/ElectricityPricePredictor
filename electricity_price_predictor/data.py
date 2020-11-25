@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-from sklearn.impute import SimpleImputer
 
 def get_file_names(directory):
     """returns the csv files in the given string directory path"""
@@ -19,23 +18,6 @@ def get_dataframes(file_names):
     for file in file_names:
         df_years[file[-29:]] = pd.read_csv(file) # [-29:] Indexes the years.csv eg '201501010000-201601010000.csv'
     return df_years
-
-def get_feature_path(feature_name, main_directory):
-    """Retrieve actual paths from by feature"""
-    for root, dirs_, files in os.walk(main_directory):
-        if feature_name in (root):
-            return root
-
-def get_features_df(main_path):
-    """return dictionary of features 'price' and 'load'"""
-    feats = ['price', 'load']
-    feat_dict = {}
-    for feat in feats:
-        path = get_feature_path(feat, main_path)
-        names = get_file_names(path)
-        feat_dict[feat] = get_dataframes(names)
-
-    return feat_dict[feats[0]], feat_dict[feats[1]]
 
 def concat_dataframes(feat):
     """concatenate the years per feature to one huge dataframe"""
@@ -68,35 +50,29 @@ def get_datetime(df):
 
     return df
 
-def merge_data(feat_1, feat_2):
-    df = feat_1.merge(feat_2, on='time').reset_index(drop=True)
-    return df
-#_________________________________________
 # Bringing it all together
 #_________________________________________
 
-def fetch_data(path = r'../raw_data/'):
+def fetch_data(path):
 
-    price, load = get_features_df(main_path=path) # unpack tuple
+    files = get_file_names(path)
+    df_dict = get_dataframes(files)
 
-    prices_data = concat_dataframes(price)
-    load_data = concat_dataframes(load)
-
-    load_data = get_datetime(load_data)
-    prices_data = get_datetime(prices_data)
+    df = concat_dataframes(df_dict)
+    df = get_datetime(df)
 
     # date up until
-    idx_p = prices_data[prices_data['time'] == '2020-11-23 23:00:00'].index
-    idx_l = load_data[load_data['time'] == '2020-11-23 23:00:00'].index
-    assert(idx_p == idx_l)
-    idx = idx_l[0] + 1
-
-    df = merge_data(prices_data, load_data)
+    idx = (df[df['time'] == '2020-11-23 23:00:00'].index)[0] + 1 # valid time frame
     df = df.iloc[:idx]
 
-    # drop unused columns
-    to_drop = ['MTU (CET)', 'Time (CET)', 'Day-ahead Total Load Forecast [MW] - BZN|DK1']
-    df.drop(columns=to_drop, inplace=True)
+    try:
+        df.drop(columns=['MTU (CET)'], inplace=True)
+        df = df.rename(columns={'Day-ahead Price [EUR/MWh]':'price'})
+        df = df[['time','price']]
+    except:
+        df.drop(columns=['Time (CET)'], inplace=True)
+        df = df.rename(columns={'Actual Total Load [MW] - BZN|DK1':'load'})
+        df = df[['time','load']]
 
     return df
 
