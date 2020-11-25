@@ -98,6 +98,11 @@ def fetch_data(path = r'../raw_data/'):
     to_drop = ['MTU (CET)', 'Time (CET)', 'Day-ahead Total Load Forecast [MW] - BZN|DK1']
     df.drop(columns=to_drop, inplace=True)
 
+    df = df.rename(columns={'Day-ahead Price [EUR/MWh]':'price',
+                   'Actual Total Load [MW] - BZN|DK1':'load'})
+
+    df = df[['time','price','load']] # reorder columns
+
     return df
 
 
