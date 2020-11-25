@@ -98,12 +98,6 @@ def fetch_data(path = r'../raw_data/'):
     to_drop = ['MTU (CET)', 'Time (CET)', 'Day-ahead Total Load Forecast [MW] - BZN|DK1']
     df.drop(columns=to_drop, inplace=True)
 
-    # handle missing data
-    imputer = SimpleImputer()
-
-    df[['Day-ahead Price [EUR/MWh]','Actual Total Load [MW] - BZN|DK1']] \
-        = imputer.fit_transform(df[['Day-ahead Price [EUR/MWh]','Actual Total Load [MW] - BZN|DK1']])
-
     return df
 
 
