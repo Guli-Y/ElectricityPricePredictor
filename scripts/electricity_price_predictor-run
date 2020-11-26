@@ -9,19 +9,7 @@ import pandas as pd
 # Import from electricity_price_predictor
 import electricity_price_predictor
 from electricity_price_predictor.lib import clean_data
+from electricity_price_predictor.data import fetch_data
 
 if __name__ == '__main__':
-    usage = '%(prog)s'
-    description = 'electricity_price_predictor_description'
-    # https://docs.python.org/3/library/argparse.html
-    # https://docs.python.org/3/howto/argparse.html
-    parser = argparse.ArgumentParser(description=description, usage=usage)
-    args = parser.parse_args()
-    folder_source, _ = split(electricity_price_predictor.__file__)
-    df = pd.read_csv('{}/data/data.csv.gz'.format(folder_source))
-    print('  electricity_price_predictor/data/data.csv.gz Loaded')
-
-    res = clean_data(df)
-    res.to_csv('out.csv', index=False)
-    print('==> out.csv MADE ')
-    print('    shape is {}'.format(res.shape))
+    fetach_data()
