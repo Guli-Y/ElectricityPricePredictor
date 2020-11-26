@@ -43,9 +43,9 @@ def get_load(path='../raw_data/load/'):
     df.drop(columns=['time'], inplace=True)
     return df
 
-def get_shifted_price(df):
+def get_shifted_price():
     """Takes in dataframe and performs shift to compensate for daylight saving"""
-    df = df.copy()
+    df = get_price()
     df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
     df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
     df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
@@ -63,9 +63,6 @@ def get_shifted_price(df):
     df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
     no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
 
-    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
-    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
-
     price_df = df_1
     for data in no_shift[1:]:
         price_df = pd.concat([price_df, data])
@@ -73,6 +70,40 @@ def get_shifted_price(df):
         data = data.shift(periods=-1).dropna()
         price_df = pd.concat([price_df, data])
 
+    price_df = price_df.sort_index()
+
     return price_df
+
+
+def get_shifted_load():
+    """Takes in dataframe and performs shift to compensate for daylight saving"""
+    df = get_load()
+    df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
+    df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
+    df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
+    df_4 = df.loc['2016-03-27 02:00:00':'2016-10-30 02:00:00']
+    df_5 = df.loc['2016-10-30 03:00:00':'2017-03-26 01:00:00']
+    df_6 = df.loc['2017-03-26 02:00:00':'2017-10-29 02:00:00']
+    df_7 = df.loc['2017-10-29 03:00:00':'2018-03-25 01:00:00']
+    df_8 = df.loc['2018-03-25 02:00:00':'2018-10-28 02:00:00']
+    df_9 = df.loc['2018-10-28 03:00:00':'2019-03-31 01:00:00']
+    df_10 = df.loc['2019-03-31 02:00:00':'2019-10-27 02:00:00']
+    df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
+    df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
+    df_13 = df.loc['2020-10-25 03:00:00':'2020-11-23 16:00:00']
+
+    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
+    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
+
+    load_df = df_1
+    for data in no_shift[1:]:
+        load_df = pd.concat([load_df, data])
+    for data in df_shift:
+        data = data.shift(periods=-1).dropna()
+        load_df = pd.concat([load_df, data])
+
+    load_df = load_df.sort_index()
+
+    return load_df
 
 
