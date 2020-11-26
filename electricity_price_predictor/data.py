@@ -2,79 +2,77 @@ import os
 import numpy as np
 import pandas as pd
 
-def get_file_names(directory):
-    """returns the csv files in the given string directory path"""
-    file_names = []
-    for filename in os.listdir(directory):
-        if filename.endswith(".csv"):
-            file_names.append(os.path.join(directory, filename))
-    return file_names
+def file_names(path='../'):
+    csv_files = []
+    for root, direc, files in os.walk('../'):
+        if 'raw_data\\' in root:
+            csv_files.append(files)
+    return csv_files
 
-def get_dataframes(file_names):
-    """Takes in a list of csv file paths.
-    Returns a dictionary whose keys are the years
-    and values are the corresponding dataframes."""
-    df_years = {}
-    for file in file_names:
-        df_years[file[-29:]] = pd.read_csv(file) # [-29:] Indexes the years.csv eg '201501010000-201601010000.csv'
-    return df_years
 
-def concat_dataframes(feat):
-    """concatenate the years per feature to one huge dataframe"""
-    keys = list(feat.keys())
-    df = pd.concat([
-        feat[keys[0]],  # year 2015
-        feat[keys[1]],  # year 2016
-        feat[keys[2]],  # year 2017
-        feat[keys[3]],  # year 2018
-        feat[keys[4]],  # year 2019
-        feat[keys[5]]   # year 2020
-    ]).reset_index(drop=True)
+def get_price(path='../raw_data/price/'):
+    price_files = file_names()[2]
+    df = pd.read_csv(path+price_files[0])
+    for file in price_files[1:]:
+        df_2 = pd.read_csv(path+file)
+        df = pd.concat([df, df_2])
+    df = df.reset_index(drop=True)
+    df.columns = ['time', 'price']
+    df['time'] = df.time.str[:16]
+    df = df[df.price!='-'] # filtering the timestamps till 24.11.2020
+    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
+    df['price'] = df.price.astype('float')
+    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
+    df.drop(columns=['time'], inplace=True)
     return df
 
-def get_datetime(df):
-    """A function is created to make a new column called
-    time that will strip the string down to the initial
-    timestamp e.g 31.12.2020 19:00 from the initial
-    31.12.2020 19:00 - 31.12.2020 format and then convert
-    the series to datetime objects"""
-    try:
-        column = df['MTU (CET)'] # column with time values in price df
-    except:
-        column = df['Time (CET)']  # load time
-
-    # create new column 'time' by formatting the original time column to get single timepoint instead of a range
-    df['time'] = column.apply(lambda _: _[:16])
-    # convert new time column from str to timestamp
-    df['time'] = pd.to_datetime(df['time'] , format="%d-%m-%Y %H%M", errors='ignore')
-
-
+def get_load(path='../raw_data/load/'):
+    load_files = file_names()[1]
+    df = pd.read_csv(path+load_files[0])
+    for file in load_files[1:]:
+        df_2 = pd.read_csv(path+file)
+        df = pd.concat([df, df_2])
+    df = df.reset_index(drop=True)
+    df = df.drop(columns='Day-ahead Total Load Forecast [MW] - BZN|DK1')
+    df.columns = ['time', 'load']
+    df['time'] = df.time.str[:16]
+    df = df[df.load!='-'] # filtering the timestamps till 24.11.2020
+    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
+    df['load'] = df.load.astype('float')
+    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
+    df.drop(columns=['time'], inplace=True)
     return df
 
-# Bringing it all together
-#_________________________________________
+def get_shifted_price(df):
+    """Takes in dataframe and performs shift to compensate for daylight saving"""
+    df = df.copy()
+    df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
+    df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
+    df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
+    df_4 = df.loc['2016-03-27 02:00:00':'2016-10-30 02:00:00']
+    df_5 = df.loc['2016-10-30 03:00:00':'2017-03-26 01:00:00']
+    df_6 = df.loc['2017-03-26 02:00:00':'2017-10-29 02:00:00']
+    df_7 = df.loc['2017-10-29 03:00:00':'2018-03-25 01:00:00']
+    df_8 = df.loc['2018-03-25 02:00:00':'2018-10-28 02:00:00']
+    df_9 = df.loc['2018-10-28 03:00:00':'2019-03-31 01:00:00']
+    df_10 = df.loc['2019-03-31 02:00:00':'2019-10-27 02:00:00']
+    df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
+    df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
+    df_13 = df.loc['2020-10-25 03:00:00':'2020-11-24 23:00:00']
 
-def fetch_data(path):
+    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
+    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
 
-    files = get_file_names(path)
-    df_dict = get_dataframes(files)
+    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
+    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
 
-    df = concat_dataframes(df_dict)
-    df = get_datetime(df)
+    price_df = df_1
+    for data in no_shift[1:]:
+        price_df = pd.concat([price_df, data])
+    for data in df_shift:
+        data = data.shift(periods=-1).dropna()
+        price_df = pd.concat([price_df, data])
 
-    # date up until
-    idx = (df[df['time'] == '23.11.2020 23:00'].index)[0] + 1 # valid time frame
-    df = df.iloc[:idx]
-
-    try:
-        df.drop(columns=['MTU (CET)'], inplace=True)
-        df = df.rename(columns={'Day-ahead Price [EUR/MWh]':'price'})
-        df = df[['time','price']]
-    except:
-        df.drop(columns=['Time (CET)'], inplace=True)
-        df = df.rename(columns={'Actual Total Load [MW] - BZN|DK1':'load'})
-        df = df[['time','load']]
-
-    return df
+    return price_df
 
 
