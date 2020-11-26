@@ -153,5 +153,7 @@ def get_weather(path='../raw_data/weather_2015_2020.csv'):
         weather_df.loc[idx] = weather_df.loc[pd.to_datetime(idx) - timedelta(hours= 1)] + \
                       weather_df.loc[pd.to_datetime(idx) + timedelta(hours= 1)] / 2
 
+    weather_df = weather_df.sort_index()
+
     return weather_df
 
