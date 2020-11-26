@@ -48,6 +48,7 @@ def get_shifted_price():
     for data in df_shift:
         data = data.shift(periods=-1).dropna()
         price_df = pd.concat([price_df, data])
+    price_df.sort_index(inplace=True)
     return price_df
 
 
