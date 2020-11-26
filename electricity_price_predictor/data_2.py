@@ -40,10 +40,12 @@ def get_shifted_price():
     df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
     df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
     df_13 = df.loc['2020-10-25 03:00:00':'2020-11-24 23:00:00']
-    df_list = [df_1, df_2, df_3, df_4, df_5, df_6, df_7,
-                df_8, df_9, df_10, df_11, df_12, df_13]
+    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
+    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
     price_df = df_1
-    for data in df_list[1:]:
+    for data in no_shift[1:]:
+        price_df = pd.concat([price_df, data])
+    for data in df_shift:
         data = data.shift(periods=-1).dropna()
         price_df = pd.concat([price_df, data])
     return price_df
