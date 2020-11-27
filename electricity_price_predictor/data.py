@@ -201,3 +201,15 @@ def get_days_dummies(start='1/1/2015', stop='23/11/2020', frequency='D'):
     days.columns = columns
     return days
 
+
+def get_coal_price(path='../raw_data/coal_price.xls'):
+    """return daily coal prices from 25-NOV-15 till 24-NOV-20"""
+    df = pd.read_excel(path, skiprows=2)
+    df = df.rename(columns={'Unnamed: 0':'time',
+                            'ROTTERDAM COAL': 'coal_price'})
+    df.time = pd.to_datetime(df.time)
+
+    df = df.set_index('time').sort_index()
+    df.fillna(method='ffill', inplace=True)
+
+    return df
