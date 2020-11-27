@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from datetime import timedelta
+import holidays
 
 def file_names(path='../'):
     csv_files = []
@@ -117,7 +118,7 @@ def get_weather(path='../raw_data/weather_2015_2020.csv'):
     to_drop = ['dt_iso','timezone','lat', 'lon','sea_level','grnd_level',
                'rain_1h','rain_3h', 'pressure', 'snow_1h', 'snow_3h',
                'temp_min','temp_max','weather_id', 'weather_description',
-               'weather_icon']
+               'weather_icon', 'wind_deg']
     df = df.drop(to_drop, axis=1)
 
     # population of each city in the df
@@ -136,7 +137,7 @@ def get_weather(path='../raw_data/weather_2015_2020.csv'):
     df['population'] = [pop[city] for city in df.city_name]
 
     # numeric weather values as affects demand or supply
-    numeric_cols = ['temp', 'feels_like', 'humidity',  'clouds_all','wind_speed', 'wind_deg']
+    numeric_cols = ['temp', 'feels_like', 'humidity',  'clouds_all','wind_speed']
 
     weather_df = pd.DataFrame()
 
@@ -156,4 +157,47 @@ def get_weather(path='../raw_data/weather_2015_2020.csv'):
     weather_df = weather_df.sort_index()
 
     return weather_df
+
+
+def get_holidays(start='1/1/2015', stop='23/11/2020', country='DK', frequency='D'):
+    """
+    Takes in a start and stop date and a country.
+    Produces a dataframe with a daily date time index and columns:
+    day_of_week - numerical day of the week identifier 0 for monday
+    holiday_bool - boolean true or false for holiday
+    holiday_name - name of the holiday if holiday_bool is true
+    Returns a dataframe
+    """
+    #generate the range of daily dates
+    dates = pd.date_range(start=start, end=stop, freq=frequency)
+    #create the holiday object
+    country_holidays = holidays.CountryHoliday(country)
+    #create a list for the holiday bool and name
+    holiday_list = []
+    #loop through the dates
+    for date in dates:
+        #true if holiday in object, false otherwise
+        holiday_bool = date in country_holidays
+        holiday_names = country_holidays.get(date)
+        holiday_list.append([holiday_bool, holiday_names])
+    #create return dataframe
+    holidays_data = pd.DataFrame(holiday_list, index=dates, columns=['holiday_bool', 'holiday_name'])
+    return holidays_data
+
+
+def get_days_dummies(start='1/1/2015', stop='23/11/2020', frequency='D'):
+    """
+    Takes in a start and stop date and frequency.
+    Produces a dataframe with a date time index at the frequency input and columns:
+    weekday_id - numerical day of the week identifier 0 for monday
+    Returns a dataframe
+    """
+    #generate the range of daily dates
+    dates = pd.date_range(start=start, end=stop, freq=frequency)
+    #create a dataframe of weekday categories
+    days = pd.DataFrame(list(dates.weekday), index=dates, columns=['weekday_id'])
+    days = pd.get_dummies(days['weekday_id'])
+    columns = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun']
+    days.columns = columns
+    return days
 
