@@ -213,3 +213,56 @@ def get_coal_price(path='../raw_data/coal_price.xls'):
     df.fillna(method='ffill', inplace=True)
 
     return df
+
+
+def get_wind_prod(path="../raw_data/productionconsumptionsettlement.csv"):
+    """Returns a feature-engineered dataframe including:
+    1. Wind production
+    2. Wind share of total production
+    """
+    data = pd.read_csv(path)
+
+    # columns with actual (needed) prod values
+    measures = data.drop(columns=["HourUTC","HourDK"]).columns
+    df = data[["HourDK"] + list(measures)]
+
+    # convert to datetime and set time index
+    df['time'] = pd.to_datetime(df['HourDK'].replace("T", " "))
+    df = df.drop(columns="HourDK").sort_values(by="time").set_index("time").loc["2015-01-01":]
+
+    # columns to be engineered
+    wind = ["OffshoreWindLt100MW_MWh", "OffshoreWindGe100MW_MWh",
+            "OnshoreWindLt50kW_MWh", "OnshoreWindGe50kW_MWh"]
+
+    non_wind = ["CentralPowerMWh", "LocalPowerMWh", "HydroPowerMWh",
+                "SolarPowerLt10kW_MWh", "SolarPowerGe10Lt40kW_MWh",
+                "SolarPowerGe40kW_MWh", "TransmissionLossMWh"]
+
+    irrelevant_cols = ["PriceArea","ExchangeGE_MWh","PowerToHeatMWh",
+                       "ExchangeNO_MWh","ExchangeSE_MWh", "ExchangeNL_MWh",
+                       "GrossConsumptionMWh","ExchangeGreatBelt_MWh",
+                       "LocalPowerSelfConMWh"]
+
+    substract_cols = "SolarPowerSelfConMWh"
+
+    part_null_cols = ["SolarPowerGe10Lt40kW_MWh","SolarPowerGe40kW_MWh",
+                      "SolarPowerLt10kW_MWh","TransmissionLossMWh"]
+
+    # drop irrelevant
+    df = df.drop(columns=irrelevant_cols)
+    # deal with NaNs
+    df[substract_cols] = df[substract_cols].fillna(0)
+    df[part_null_cols] = df[part_null_cols].fillna(0)
+
+    # wind_prod & non_wind engineered from sum off all wind / nonwind cols
+    df['wind_prod'] = df[wind].sum(axis=1)
+    df["non_wind_prod"] = df[non_wind].sum(axis=1)
+
+    # total prod and wind percentage of total defined
+    df["total_prod"] = df["wind_prod"] + df["non_wind_prod"] - df[substract_cols]
+    df["wind_share"] = df["wind_prod"] / df["total_prod"]
+
+    # final df with needed engineered cols
+    final_df = df[["total_prod", "wind_prod", "wind_share"]]
+
+    return final_df
