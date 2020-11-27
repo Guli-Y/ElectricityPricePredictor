@@ -263,6 +263,6 @@ def get_wind_prod(path="../raw_data/productionconsumptionsettlement.csv"):
     df["wind_share"] = df["wind_prod"] / df["total_prod"]
 
     # final df with needed engineered cols
-    final_df = df[["wind_prod", "wind_share"]]
+    final_df = df[["total_prod", "wind_prod", "wind_share"]]
 
     return final_df
