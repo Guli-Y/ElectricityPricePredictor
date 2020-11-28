@@ -181,7 +181,8 @@ def get_holidays(start='1/1/2015', stop='23/11/2020', country='DK', frequency='D
         holiday_names = country_holidays.get(date)
         holiday_list.append([holiday_bool, holiday_names])
     #create return dataframe
-    holidays_data = pd.DataFrame(holiday_list, index=dates, columns=['holiday_bool', 'holiday_name'])
+    holidays_data = pd.DataFrame(holiday_list, index=dates, columns=['holiday', 'holiday_name'])
+    holidays_data.holiday=holidays_data.holiday.astype('int')
     return holidays_data
 
 
@@ -266,3 +267,31 @@ def get_wind_prod(path="../raw_data/productionconsumptionsettlement.csv"):
     final_df = df[["total_prod", "wind_prod", "wind_share"]]
 
     return final_df
+
+def get_all(hour=11):
+    '''take a hour=n and returns a df,
+    df contains the values for price and all the other features for the specific
+    hour (n) of the day '''
+    df_price = get_shifted_price()
+    df_price_11 = df_price[df_price.index.hour==hour]
+    df_load = get_shifted_load()
+    df_load_11 = df_load[df_load.index.hour==hour]
+    df_weather = get_weather()
+    df_weather_11 = df_weather[df_weather.index.hour==hour]
+    df_holidays = get_holidays().drop(columns=['holiday_name'])
+    df_wind = get_wind_prod()
+    df_wind_11 = df_wind[df_wind.index.hour==hour]
+    # change the index of df_holidays so that it can be joined with others
+    df_holidays['time']=f'{str(hour)}:00'
+    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
+    df_holidays.index = df_holidays.index + df_holidays.time
+    df_holidays_11 = df_holidays.drop('time', axis=1)
+    # joining all the dataframes
+    dfs = dict(load=df_load_11, weather=df_weather_11, wind=df_wind_11, holidays=df_holidays_11)
+    # merge all features
+    df_all = df_price_11
+    for df in dfs.values():
+        df_all = df_all.join(df, how='outer')
+    # wind production data is only available till 2020-11-18, so cut the date
+    df_all = df_all[df_all.index < '2020-11-19 00:00:00']
+    return df_all
