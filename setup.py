@@ -20,6 +20,7 @@ setup(name='FlaskAPI',
       version="1.0",
       description="Project Description",
       packages=find_packages(),
+      test_suite = 'tests',
       # include_package_data: to install data from MANIFEST.in
       include_package_data=True,
       description='flask api')
