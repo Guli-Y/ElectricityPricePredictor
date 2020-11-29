@@ -10,3 +10,4 @@ yapf
 python-gitlab
 twine
 holidays
+xlrd
