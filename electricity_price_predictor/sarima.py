@@ -8,26 +8,42 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 def get_daily(hour=11):
+    '''it returns a subset of price data based on hour'''
     df = get_shifted_price()
     df = df[df.index.hour==hour]
     return df
 
 def get_mape(y_true, y_pred):
+    ''' y_true, y_pred need to list or pd.series
+    it returns mean absolute percentage error'''
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
     mape = np.round(mape,2)
     return f'{mape}%'
 
+def get_mase(y_true, y_pred, train_y):
+    ''' y_true, y_pred, train_y need to list or pd.series
+    it returns mean absolute scaled error'''
+    y_true, y_pred, train_y = np.array(y_true), np.array(y_pred), np.array(train_y)
+    upper = np.mean(np.abs(y_pred-y_true))
+    train_t = train_y[:-1]
+    train_t_1 = train_y[1:]
+    lower = np.mean(np.abs(train_t-train_t_1))
+    return upper/lower
+
 def plot_forecast(forecast, train, test, lower_int, upper_int, mape=None):
+    '''it will plot a forecast'''
     plt.figure(figsize=(10,4), dpi=100)
     plt.plot(train, label='training', color='black')
     plt.plot(test, label='actual', color='black', ls='--')
     plt.plot(forecast, label='forecast', color='orange')
     plt.fill_between(forecast.index, lower_int, upper_int, color='k', alpha=.15)
+    title = 'Forecast vs Actuals '
     if isinstance(mape, str):
-        plt.title(f'Forecast vs Actuals, MAPE:{mape}')
-    else:
-        plt.title('Forecast vs Actuals')
+
+    if isinstance(mase, str):
+        title += ' '
+    plt.title('Forecast vs Actuals')
     plt.legend(loc='upper left', fontsize=8)
 
 def train_sarima(hour=11, split_date = '2019-10-22 11:00:00', n=30):
@@ -71,14 +87,16 @@ def train_sarima(hour=11, split_date = '2019-10-22 11:00:00', n=30):
 
     # calculate the mape
     mape = get_mape(test.price, forecasts)
-
+    mase = get_mase(test.price, forecasts)
     # create forecast df with datetimeIndex
     forecast = pd.DataFrame(forecasts, index=test.index, columns=['price'])
 
     return forecast, lower, upper, mape, train, test
 
 def plot_sarima_forecast(hour=11, split_date = '2019-10-22 11:00:00', n=30):
+    '''it uses sarima model and walk forward validation to forecast elect_price
+    on hour=11 for next n=30 days and plot the forecast results'''
     forecast, lower, upper, mape, train, test = \
     train_sarima(hour=hour, split_date=split_date, n=n)
-    plot_forecast(forecast, train.iloc[-150:], test, lower, upper, mape=mape)
+    plot_forecast(forecast, train.iloc[-4*n:], test, lower, upper, mape=mape)
 
