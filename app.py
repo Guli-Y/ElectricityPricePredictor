@@ -9,7 +9,7 @@ def hello():
     name = request.args.get("name", "World")
     return f'Hello, {escape(name)}!'
 
-@app.route('/predict_price', methods= ['GET'])
+@app.route('/predict_price')
 def day_head():
     test = joblib.load('../test_testset.joblib')
 
