@@ -83,8 +83,9 @@ df = get_line_chart_data()
 
 st.line_chart(df)
 
-
+from PIL import Image
 image = Image.open("DK1.png")
+image
 # @st.cache
 # def get_map_data():
 #     print('get_map_data called')
