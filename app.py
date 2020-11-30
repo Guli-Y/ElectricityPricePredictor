@@ -98,7 +98,7 @@ if st.checkbox('Show map', False):
     st.map(df)
 else:
     from PIL import Image
-    image = Image.open('DK1')
+    image = Image.open("DK1.png")
     st.image(image, caption='map', use_column_width=False)
 
 
