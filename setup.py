@@ -18,5 +18,5 @@ setup(name='electricity_price_predictor',
 
 
 
-REQUIRED_PACKAGES = [
-    'streamlit==0.65.2']
+# REQUIRED_PACKAGES = [
+#     'streamlit==0.65.2']

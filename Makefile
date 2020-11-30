@@ -59,14 +59,9 @@ pypi_test:
 pypi:
 	@twine upload dist/* -u lologibus2
 
-# ----------------------------------
-#      FLASK & HEROKU
-# ----------------------------------
-# run_flask:
-# 	env FLASK_APP=app.py flask run
 
-
+# Streamlit
 run_streamlit:
-    streamlit run app_g.py
+    streamlit run app.py
 
 
