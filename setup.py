@@ -14,3 +14,18 @@ setup(name='electricity_price_predictor',
       include_package_data=True,
       scripts=['scripts/electricity_price_predictor-run'],
       zip_safe=False)
+
+
+
+
+REQUIRED_PACKAGES = [
+    'streamlit==0.65.2']
+
+setup(
+    name='StreamlitApp',
+    version='1.0',
+    install_requires=REQUIRED_PACKAGES,
+    packages=find_packages(),
+    include_package_data=True,
+    description='Streamlit App'
+)

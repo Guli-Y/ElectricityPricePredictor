@@ -64,3 +64,24 @@ pypi:
 # ----------------------------------
 run_flask:
 	env FLASK_APP=app.py flask run
+
+
+run_streamlit:
+    streamlit run app_g.py
+
+# ----------------------------------
+#         HEROKU COMMANDS
+# ----------------------------------
+APP_NAME=taxifare-streamlit
+streamlit:
+	-@streamlit run app_g.py
+
+heroku_login:
+	-@heroku login
+
+heroku_create_app:
+	-@heroku create ${APP_NAME}
+
+deploy_heroku:
+	-@git push heroku master
+	-@heroku ps:scale web=1
