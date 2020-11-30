@@ -24,10 +24,10 @@ import datetime
 
 date = st.date_input(
     "days for prediction",
-    datetime.date())
+    datetime.date(2020, 11, 22))
 
 time = st.time_input(
-    datetime.time())
+    datetime.time(12:12))
 
 
 st.markdown("Progress bar")
