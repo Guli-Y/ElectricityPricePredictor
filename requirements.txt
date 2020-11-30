@@ -9,6 +9,7 @@ black
 yapf
 python-gitlab
 twine
+joblib
 holidays
 xlrd
 Flask==1.1.1

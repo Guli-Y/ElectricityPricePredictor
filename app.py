@@ -31,5 +31,5 @@ st.markdown("# ML Project")
 st.markdown("## Electricity price predictor")
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
