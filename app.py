@@ -21,8 +21,11 @@
 
 import streamlit as st
 import datetime
+import pandas as pd
+import numpy as np
 
-date = st.date_input(
+
+date= st.date_input(
     "days for prediction",
     datetime.date(2020, 11, 19))
 
