@@ -66,7 +66,7 @@ run_flask:
 	env FLASK_APP=app.py flask run
 
 
-run_streamlit:
+run_website:
     streamlit run app_g.py
 
 # ----------------------------------
