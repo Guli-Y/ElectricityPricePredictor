@@ -9,7 +9,7 @@ black
 yapf
 python-gitlab
 twine
-joblib==0.14.1
+joblib
 holidays
 xlrd
 Flask==1.1.1

@@ -24,6 +24,8 @@ import streamlit as st
 st.markdown("# ML Project")
 st.markdown("## Electricity price predictor")
 
+def main():
+    print("hello")
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

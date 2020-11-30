@@ -7,7 +7,7 @@ requirements = [x.strip() for x in content if 'git+' not in x]
 
 
 REQUIRED_PACKAGES = [
-    'joblib==0.14.1']
+    'joblib']
 
 setup(name='electricity_price_predictor',
       version="1.0",
@@ -19,7 +19,3 @@ setup(name='electricity_price_predictor',
       include_package_data=True,
       scripts=['scripts/electricity_price_predictor-run'],
       zip_safe=False)
-
-
-
-
