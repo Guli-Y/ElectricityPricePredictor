@@ -20,9 +20,72 @@
 
 
 import streamlit as st
+import datetime
 
-st.markdown("# ML Project")
-st.markdown("## Electricity price predictor")
+date = st.date_input(
+    "days for prediction",
+    datetime.date())
+
+time = st.time_input(
+    datetime.time())
+
+
+st.markdown("Progress bar")
+
+if st.checkbox('Show progress bar'):
+    import time
+
+    'Starting a long computation...'
+
+    # Add a placeholder
+    latest_iteration = st.empty()
+    bar = st.progress(0)
+
+    for i in range(100):
+        # Update the progress bar with each iteration.
+        latest_iteration.text(f'Iteration {i+1}')
+        bar.progress(i + 1)
+        time.sleep(0.1)
+
+    '...and now we\'re done!'
+
+
+st.markdown("Dataframe")
+@st.cache
+def get_dataframe_data():
+    print('get_dataframe_data called')
+    return pd.DataFrame(
+            np.random.randn(10, 5),
+            columns=('col %d' % i for i in range(5))
+        )
+
+df = get_dataframe_data()
+
+st.write(df.head())
+
+st.dataframe(df.head().style.highlight_max(axis=0))
+
+
+st.markdown("Line Chart")
+
+@st.cache
+def get_line_chart_data():
+    print('get_line_chart_data called')
+    return pd.DataFrame(
+            np.random.randn(20, 3),
+            columns=['a', 'b', 'c']
+        )
+
+df = get_line_chart_data()
+
+st.line_chart(df)
+
+
+st.markdown("# ML Project - Electricity price predictor")
+
+
+
+
 
 def main():
     print("hello")
