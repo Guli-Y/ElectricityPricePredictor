@@ -26,8 +26,8 @@ date = st.date_input(
     "days for prediction",
     datetime.date(2020, 11, 19))
 
-time = st.time_input(
-    datetime.time(5,12))
+# time = st.time_input(
+#     datetime.time(5,12))
 
 
 st.markdown("Progress bar")
