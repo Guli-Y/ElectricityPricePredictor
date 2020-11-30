@@ -281,13 +281,20 @@ def get_all(hour=11):
     df_holidays = get_holidays().drop(columns=['holiday_name'])
     df_wind = get_wind_prod()
     df_wind_11 = df_wind[df_wind.index.hour==hour]
+    df_coal = get_coal_price()
+    df_coal_11 = df_coal[df_coal.index.hour==hour]
+    # change the index of df_holidays so that it can be joined with others
+    df_coal['time']=f'{str(hour)}:00'
+    df_coal.time = pd.to_timedelta(df_coal.time + ':00')
+    df_coal.index = df_coal.index + df_coal.time
+    df_coal_11 = df_coal.drop('time', axis=1)
     # change the index of df_holidays so that it can be joined with others
     df_holidays['time']=f'{str(hour)}:00'
     df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
     df_holidays.index = df_holidays.index + df_holidays.time
     df_holidays_11 = df_holidays.drop('time', axis=1)
     # joining all the dataframes
-    dfs = dict(load=df_load_11, weather=df_weather_11, wind=df_wind_11, holidays=df_holidays_11)
+    dfs = dict(load=df_load_11, coal=df_coal_11, weather=df_weather_11, wind=df_wind_11, holidays=df_holidays_11)
     # merge all features
     df_all = df_price_11
     for df in dfs.values():
