@@ -20,20 +20,15 @@
 
 
 import streamlit as st
-import datetime
 import pandas as pd
-import joblib
-from datetime import timedelta
-import holidays
 import numpy as np
 from PIL import Image
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from electricity_price_predictor.data import get_all, get_price
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.linear_model import LinearRegression
-import statsmodels.formula.api as sm
-import os
+# import matplotlib.pyplot as plt
+# import matplotlib.image as mpimg
+# from electricity_price_predictor.data import get_all, get_price
+# from sklearn.preprocessing import MinMaxScaler
+# from sklearn.linear_model import LinearRegression
+# import statsmodels.formula.api as sm
 
 
 st.markdown("# ML Project - Electricity price predictor")
