@@ -114,7 +114,8 @@ st.markdown("# ML Project - Electricity price predictor")
 # img = mpimg.imread('/notebooks/DK1.png')
 # # plt.imshow(img)
 
-image = Image.open('test.png')
+image = Image.open('DK1.png')
+
 st.image(image, use_column_width=True)
 
 
