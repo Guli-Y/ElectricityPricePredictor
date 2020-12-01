@@ -334,7 +334,7 @@ def get_all(hour=11):
     df_price_11 = df_price[df_price.index.hour==hour]
     df_load = get_shifted_load()
     df_load_11 = df_load[df_load.index.hour==hour]
-    df_weather = get_weather_2()
+    df_weather = get_weather()
     df_weather_11 = df_weather[df_weather.index.hour==hour]
     df_holidays = get_holidays().drop(columns=['holiday_name'])
     df_wind = get_wind_prod()
