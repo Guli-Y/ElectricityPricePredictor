@@ -26,9 +26,6 @@ def sarimax_forecast(hour=11):
     sarima = SARIMAX(past.price, past.drop('price', axis=1),
                  order=(1,1,1), seasonal_order=(1,0,2,7))
     sarima = sarima.fit(maxiter=200)
-    # save the model
-    # joblib.dump(sarima, f'model_{hour}.joblib')
-    # print(colored(f"model_{hour}.joblib saved locally", "green"))
     # forecasting
     results = sarima.get_forecast(2, exog=future, alpha=0.05)
     forecast = sarima.forecast(2, exog=future, alpha=0.05)
@@ -63,10 +60,12 @@ def plot_sarima_forecast(hour=11):
     '''it calls sarimax_forecast function and
     plot the forecast results using plot_forecast function'''
     forecast, past = sarimax_forecast(hour=hour)
+    print(forecast)
     plot_forecast(forecast.price, past, forecast.lower, forecast.upper)
 
 def plot_sarima_forecast_48():
     '''it calls sarimax_forecast_48 function and
     plot the forecast results using plot_forecast function'''
     forecast, past = sarimax_forecast_48()
+    print(forecast)
     plot_forecast(forecast.price, past, forecast.lower, forecast.upper)
