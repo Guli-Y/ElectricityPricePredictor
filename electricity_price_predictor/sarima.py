@@ -123,11 +123,3 @@ def train_sarima(data=False, hour=11,
     forecast = pd.DataFrame(forecasts, index=test.index, columns=['price'])
 
     return forecast, lower, upper, mape, mase, train, test
-
-def plot_sarima_forecast(hour=11, split_date = '2019-10-22 11:00:00', n=30):
-    '''it uses sarima model and walk forward validation to forecast elect_price
-    on hour=11 for next n=30 days and plot the forecast results'''
-    forecast, lower, upper, mape, mase, train, test = \
-    train_sarima(hour=hour, split_date=split_date, n=n)
-    plot_forecast(forecast, train.iloc[-3*n:], test, lower, upper, mape=mape, mase=mase)
-
