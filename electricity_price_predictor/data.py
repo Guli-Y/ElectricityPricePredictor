@@ -216,6 +216,77 @@ def get_weather_2(path='../raw_data/weather_2015_2020.csv'):
 
     return weather_df
 
+def get_weather_past():
+    """Get weather for the past calendar day in DK1 region"""
+
+    # cities in DK1 region
+    cities = ['Aalborg', 'Aarhus', 'Esbjerg', 'Herning',
+              'Horsens', 'Kolding','Odense', 'Randers',
+              'Silkeborg', 'Vejle', 'Viborg']
+
+    # city population to be used in weighted average of weather info
+    pop = {'Aarhus': 349_983,
+        'Odense': 204_895,
+        'Aalborg': 217_075,
+        'Esbjerg': 115_748,
+        'Vejle': 111_743,
+        'Randers': 96_559,
+        'Viborg': 93_819,
+        'Kolding': 89_412,
+        'Silkeborg': 89_328,
+        'Herning': 86_348,
+        'Horsens': 83_598}
+
+    # time
+    today = datetime.date.today()
+    t_unix = int(time.mktime(today.timetuple()))
+
+    # openweather api endpoints
+    key = '7028ef7cb1384c020af39dc40e0e14b5'
+
+    # retireive weather for each city
+    weather = {}
+    for city in cities:
+        # city coordinates
+        geolocator = Nominatim(user_agent="dk_explorer")
+        location = geolocator.geocode('Aalborg')
+        lat = location.latitude
+        lon = location.longitude
+        # weather endpoint
+        url = f'https://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={t_unix}&appid={key}&units=metric'
+        result = requests.get(url).json()['hourly']   # hourly data points
+        # json to dataframe
+        df = pd.DataFrame(result)
+        df['city_name'] = city
+
+        # convert to datetime and DK timezone
+        times = pd.to_datetime(df['dt'], unit='s', origin='unix')
+        df['dt'] = times.dt.tz_localize('UTC').dt.tz_convert('Europe/Copenhagen').dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        weather[city] = df
+
+    # concat the cities in weather dict into one df
+    concat_cities = []
+    for key, value in weather.items():
+        concat_cities.append(value)
+    df_main = pd.concat(concat_cities)
+
+    # get population column
+    df_main['population'] = [pop[city] for city in df_main.city_name]
+
+    # numeric weather values as affects demand or supply
+    numeric_cols = ['temp', 'humidity', 'wind_speed']
+
+    past_weather_df = pd.DataFrame()
+    #for the numeric columns, group by datetime and average according to their population weight
+    for col in numeric_cols:
+        #group by the datecolumn for each element in the column average it by it's weight
+        past_weather_df[col] = df_main.groupby(df_main.dt).apply(lambda x : np.average(x[col], weights=x.population))
+
+    return past_weather_df
+
+
+
 
 def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     """
