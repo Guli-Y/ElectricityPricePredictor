@@ -47,7 +47,7 @@ def get_shifted_price():
     df_10 = df.loc['2019-03-31 02:00:00':'2019-10-27 02:00:00']
     df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
     df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
-    df_13 = df.loc['2020-10-25 03:00:00':'2020-11-23 16:00:00']
+    df_13 = df.loc['2020-10-25 03:00:00':]
 
     df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
     no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
@@ -166,10 +166,11 @@ def get_weather_2(path='../raw_data/weather_2015_2020.csv'):
         weather_df.loc[idx] = weather_df.loc[pd.to_datetime(idx) - timedelta(hours= 1)] + \
                       weather_df.loc[pd.to_datetime(idx) + timedelta(hours= 1)] / 2
 
+    weather_df.set_index(pd.DatetimeIndex(weather_df.index), inplace=True)
     weather_df = weather_df.sort_index()
 
     return weather_df
-  
+
 def get_weather_forecast(city):
     """returns the weather forecast for a given Danish city
     in json format"""
@@ -190,7 +191,23 @@ def get_weather_48():
     """returns a dataframe with average (weighted) weather for next 48 hours
     in DK1 zone
     """
-        # retireive weather for each city with get_weather_forecast
+    # cities in DK1 region
+    cities = ['Aalborg', 'Aarhus', 'Esbjerg', 'Herning',
+              'Horsens', 'Kolding','Odense', 'Randers',
+              'Silkeborg', 'Vejle', 'Viborg']
+    #for the numeric columns, group by datetime and average according to their population weight
+    pop = {'Aarhus': 349_983,
+          'Odense': 204_895,
+          'Aalborg': 217_075,
+          'Esbjerg': 115_748,
+          'Vejle': 111_743,
+          'Randers': 96_559,
+          'Viborg': 93_819,
+          'Kolding': 89_412,
+          'Silkeborg': 89_328,
+          'Herning': 86_348,
+          'Horsens': 83_598}
+    # retireive weather for each city with get_weather_forecast
     weather = {}
     for city in cities:
         weather[city] = get_weather_forecast(city)['hourly']
@@ -210,29 +227,16 @@ def get_weather_48():
     appended_df = pd.concat(appended_df)
     appended_df['population'] = [pop[city] for city in appended_df.city_name]
     weather_df = pd.DataFrame()
-    # cities in DK1 region
-    cities = ['Aalborg', 'Aarhus', 'Esbjerg', 'Herning',
-              'Horsens', 'Kolding','Odense', 'Randers',
-              'Silkeborg', 'Vejle', 'Viborg']
-    #for the numeric columns, group by datetime and average according to their population weight
-    pop = {'Aarhus': 349_983,
-          'Odense': 204_895,
-          'Aalborg': 217_075,
-          'Esbjerg': 115_748,
-          'Vejle': 111_743,
-          'Randers': 96_559,
-          'Viborg': 93_819,
-          'Kolding': 89_412,
-          'Silkeborg': 89_328,
-          'Herning': 86_348,
-          'Horsens': 83_598}
+
     # numeric weather values as affects demand or supply
     numeric_cols = ['temp', 'humidity', 'wind_speed']
     for col in numeric_cols:
     #group by the datecolumn for each element in the column average it by it's weight
       weather_df[col] = appended_df.groupby(appended_df.dt).apply(lambda x : np.average(x[col], weights=x.population))
+    weather_df.set_index(pd.DatetimeIndex(weather_df.index), inplace=True)
+    weather_df = weather_df.sort_index()
     return weather_df
-  
+
 def get_weather_past():
     """Get weather for the past calendar day in DK1 region"""
     # cities in DK1 region
@@ -295,14 +299,20 @@ def get_weather_past():
     for col in numeric_cols:
         #group by the datecolumn for each element in the column average it by it's weight
         past_weather_df[col] = df_main.groupby(df_main.dt).apply(lambda x : np.average(x[col], weights=x.population))
+    past_weather_df.set_index(pd.DatetimeIndex(past_weather_df.index), inplace=True)
+    past_weather_df = past_weather_df.sort_index()
     return past_weather_df
-  
+
 def get_updated_weather():
-    history = get_weather_2()
-    past = get_weather_past()
-    forecast = get_weather_forecast()
-    # save the df_all
-    df_all.save_csv('updated_data.csv')
+    '''it gets historical weather data and merge it with weather forecast for next 48h,
+    and saves the updated data to updated_data.csv and returns the up to date weather data'''
+    df_1 = pd.read_csv('../raw_data/updated_data.csv', parse_dates=True, index_col='dt')
+    df_2 = get_weather_48()
+    df_1 = df_1[df_1.index < df_2.index[0]]
+    df = pd.concat([df_1, df_2])
+    # save the updated_data
+    df.to_csv('../raw_data/updated_data.csv')
+    return df
 
 def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     """
@@ -380,8 +390,8 @@ def get_shifted_load():
         load_df = pd.concat([load_df, data])
 
     load_df = load_df.sort_index()
-
     return load_df
+
 def get_days_dummies(start='1/1/2015', stop='23/11/2020', frequency='D'):
     """
     Takes in a start and stop date and frequency.
@@ -503,11 +513,9 @@ def get_all(hour=11):
 def get_data(hour=11):
     '''it will return past and furture datas in two different dataframes,
     which can be used for furture forecasting'''
-
     df_price = get_shifted_price()
     df_price_11 = df_price[df_price.index.hour==hour]
-    df_weather = get_weather_2() # get_updated_weather
-    df_weather = df_weather[['wind_speed','humidity', 'temp']]
+    df_weather = get_updated_weather()
     df_weather_11 = df_weather[df_weather.index.hour==hour]
     # change the index of df_holidays so that it can be joined with others
     df_holidays = get_holidays().drop(columns=['holiday_name'])
