@@ -86,7 +86,7 @@ st.line_chart(df)
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-img = mpimg.imread('DK1.png')
+img = mpimg.imread('/notebooks/DK1.png')
 plt.imshow(img)
 
 
