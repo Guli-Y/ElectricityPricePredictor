@@ -205,7 +205,7 @@ def get_weather_2(path='../raw_data/weather_2015_2020.csv'):
     weather_df = pd.concat([weather_df, df_past])
 
     # check for missing indices
-    missing_idx = pd.date_range(start = '2015-01-01', end = '2020-11-29', freq='H' ).difference(weather_df.index)
+    missing_idx = pd.date_range(start = '2015-01-01', end = '2020-11-30', freq='H' ).difference(weather_df.index)
 
     # impute missing indices with average of bounding rows
     for idx in missing_idx:
