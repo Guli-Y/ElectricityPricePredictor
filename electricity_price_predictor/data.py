@@ -183,6 +183,9 @@ def get_holidays(start='1/1/2015', stop='23/11/2020', country='DK', frequency='D
     #create return dataframe
     holidays_data = pd.DataFrame(holiday_list, index=dates, columns=['holiday', 'holiday_name'])
     holidays_data.holiday=holidays_data.holiday.astype('int')
+    # add whether it is weekend
+    holidays_data['weekend'] = 0
+    holidays_data.loc[(holidays_data.index.dayofweek==5) | (holidays_data.index.dayofweek==6), 'weekend'] = 1
     return holidays_data
 
 
@@ -300,5 +303,5 @@ def get_all(hour=11):
     for df in dfs.values():
         df_all = df_all.join(df, how='outer')
     # wind production data is only available till 2020-11-18, so cut the date
-    df_all = df_all[df_all.index < '2020-11-19 00:00:00']
+    #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
     return df_all
