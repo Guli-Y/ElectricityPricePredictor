@@ -30,17 +30,86 @@ from PIL import Image
 # from sklearn.linear_model import LinearRegression
 # import statsmodels.formula.api as sm
 
+raiden = Image.open('raiden.jpg')
+st.sidebar.markdown(f"""
+    # RAIDEN ENERGY
+    """)
 
-st.markdown("# ML Project - Electricity price predictor")
+# font_size = st.sidebar.slider('Changer header size', 16, 72, 36)
+
+SIDEBAR_CSS = f"""
+<h1 style=“font-size:44px;
+color:red“>
+"""
+
+### Creating the sidebar
+st.sidebar.image(raiden, use_column_width=True)
+st.write(SIDEBAR_CSS, unsafe_allow_html=True)
+
+
+TITLE_CSS = f"""
+<h1 style=“font-size:44px;
+color:rgb(0,0,152)“>
+"""
+
+
+st.title("ELECTRA PROJECT")
+st.write(TITLE_CSS, unsafe_allow_html=True)
+st.markdown("## Day Ahead Electricity Price Predictor ")
+st.markdown('<style>h1{color: blue;}</style>', unsafe_allow_html=True)
+###
 
 
 
-# date= st.date_input(
-#     "days for prediction",
-#     datetime.date(2020, 11, 19))
+### Table 1, price prediction
+st.markdown("Table 1 - DK1 4th of December - Electricity Prices")
+@st.cache
+def get_dataframe_data():
+    print('get_dataframe_data called')
+    return pd.DataFrame(
+            np.random.randn(24, 1),
+            columns=('col %d' % i for i in range(1))
 
-# time = st.time_input(
-#     datetime.time(5,12))
+        )
+
+df = get_dataframe_data()
+
+st.write(df)
+
+###
+
+st.markdown("Line Chart")
+
+@st.cache
+def get_line_chart_data():
+    print('get_line_chart_data called')
+    return pd.DataFrame(
+            np.random.randn(20, 3),
+            columns=['a', 'b', 'c']
+        )
+
+# df = get_line_chart_data()
+
+st.line_chart(df)
+
+### Table 2, price prediction
+st.markdown("Table 2 - 5th of December, Electricity Prices")
+@st.cache
+def get_dataframe_data():
+    print('get_dataframe_data called')
+    return pd.DataFrame(
+            np.random.randn(20, 2),
+            columns=('col %d' % i for i in range(2))
+        )
+
+df1 = get_dataframe_data()
+
+st.dataframe(df1.head().style.highlight_max(axis=0))
+###
+
+st.markdown("""[links](https://pricepred-g.herokuapp.com/)
+    """)
+
 
 
 # st.markdown("Progress bar")
@@ -79,35 +148,9 @@ st.markdown("# ML Project - Electricity price predictor")
 #     #df = read_data()
 #     main()
 
-# st.markdown("Dataframe")
-# @st.cache
-# def get_dataframe_data():
-#     print('get_dataframe_data called')
-#     return pd.DataFrame(
-#             np.random.randn(10, 5),
-#             columns=('col %d' % i for i in range(5))
-#         )
-
-# df = get_dataframe_data()
-
-# st.write(df.head())
-
-# st.dataframe(df.head().style.highlight_max(axis=0))
 
 
-# st.markdown("Line Chart")
 
-# @st.cache
-# def get_line_chart_data():
-#     print('get_line_chart_data called')
-#     return pd.DataFrame(
-#             np.random.randn(20, 3),
-#             columns=['a', 'b', 'c']
-#         )
-
-# df = get_line_chart_data()
-
-# st.line_chart(df)
 
 
 
@@ -118,9 +161,6 @@ image = Image.open('test.png')
 
 st.image(image, use_column_width=True)
 
-
-
-# @st.cache
 # def get_map_data():
 #     print('get_map_data called')
 #     return pd.DataFrame(
@@ -138,6 +178,13 @@ st.image(image, use_column_width=True)
 #     st.image(image, caption='map', use_column_width=False)
 
 
+
+col1, col2 = st.beta_columns([1,4])
+
+with col1:
+    st.write(df, use_column_width=True)
+with col2:
+    st.line_chart(df)
 
 
 
