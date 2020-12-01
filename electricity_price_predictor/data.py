@@ -1,8 +1,12 @@
 import os
 import numpy as np
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, date
+import time
+import datetime
 import holidays
+import requests
+from geopy.geocoders import Nominatim
 
 def file_names(path='../'):
     csv_files = []
@@ -158,31 +162,165 @@ def get_weather(path='../raw_data/weather_2015_2020.csv'):
 
     return weather_df
 
+def get_weather_2(path='../raw_data/weather_2015_2020.csv'):
+    df = pd.read_csv(path)
 
-def get_holidays(start='1/1/2015', stop='23/11/2020', country='DK', frequency='D'):
+    df['dt'] = pd.to_datetime(df.dt)
+
+    # drop unnecessary columns
+    to_drop = ['dt_iso','timezone','lat', 'lon','sea_level','grnd_level',
+               'rain_1h','rain_3h', 'pressure', 'snow_1h', 'snow_3h',
+               'temp_min','temp_max','weather_id', 'weather_description',
+               'weather_icon', 'wind_deg', 'feels_like','clouds_all']
+    df = df.drop(to_drop, axis=1)
+
+    # population of each city in the df
+    pop = {'Aarhus': 349_983,
+        'Odense': 204_895,
+        'Aalborg': 217_075,
+        'Esbjerg': 115_748,
+        'Vejle': 111_743,
+        'Randers': 96_559,
+        'Viborg': 93_819,
+        'Kolding': 89_412,
+        'Silkeborg': 89_328,
+        'Herning': 86_348,
+        'Horsens': 83_598}
+
+    df['population'] = [pop[city] for city in df.city_name]
+
+    # numeric weather values as affects demand or supply
+    numeric_cols = ['temp', 'humidity', 'wind_speed']
+
+    weather_df = pd.DataFrame()
+
+    #for the numeric columns, group by datetime and average according to their population weight
+    for col in numeric_cols:
+    #group by the datecolumn for each element in the column average it by it's weight
+        weather_df[col] = df.groupby(df.dt).apply(lambda x : np.average(x[col], weights=x.population))
+
+
+    # 25 - 30 nov
+    df_past = pd.read_csv('../raw_data/past_weather.csv')
+    df_past['dt'] = pd.to_datetime(df_past.dt)
+    df_past = df_past.set_index('dt')
+
+    #concat data
+    weather_df = pd.concat([weather_df, df_past])
+
+    # check for missing indices
+    missing_idx = pd.date_range(start = '2015-01-01', end = '2020-11-30', freq='H' ).difference(weather_df.index)
+
+    # impute missing indices with average of bounding rows
+    for idx in missing_idx:
+        weather_df.loc[idx] = weather_df.loc[pd.to_datetime(idx) - timedelta(hours= 1)] + \
+                      weather_df.loc[pd.to_datetime(idx) + timedelta(hours= 1)] / 2
+
+    weather_df = weather_df.sort_index()
+
+    return weather_df
+
+def get_weather_past():
+    """Get weather for the past calendar day in DK1 region"""
+
+    # cities in DK1 region
+    cities = ['Aalborg', 'Aarhus', 'Esbjerg', 'Herning',
+              'Horsens', 'Kolding','Odense', 'Randers',
+              'Silkeborg', 'Vejle', 'Viborg']
+
+    # city population to be used in weighted average of weather info
+    pop = {'Aarhus': 349_983,
+        'Odense': 204_895,
+        'Aalborg': 217_075,
+        'Esbjerg': 115_748,
+        'Vejle': 111_743,
+        'Randers': 96_559,
+        'Viborg': 93_819,
+        'Kolding': 89_412,
+        'Silkeborg': 89_328,
+        'Herning': 86_348,
+        'Horsens': 83_598}
+
+    # time
+    today = datetime.date.today()
+    t_unix = int(time.mktime(today.timetuple()))
+
+    # openweather api endpoints
+    key = '7028ef7cb1384c020af39dc40e0e14b5'
+
+    # retireive weather for each city
+    weather = {}
+    for city in cities:
+        # city coordinates
+        geolocator = Nominatim(user_agent="dk_explorer")
+        location = geolocator.geocode('Aalborg')
+        lat = location.latitude
+        lon = location.longitude
+        # weather endpoint
+        url = f'https://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={t_unix}&appid={key}&units=metric'
+        result = requests.get(url).json()['hourly']   # hourly data points
+        # json to dataframe
+        df = pd.DataFrame(result)
+        df['city_name'] = city
+
+        # convert to datetime and DK timezone
+        times = pd.to_datetime(df['dt'], unit='s', origin='unix')
+        df['dt'] = times.dt.tz_localize('UTC').dt.tz_convert('Europe/Copenhagen').dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        weather[city] = df
+
+    # concat the cities in weather dict into one df
+    concat_cities = []
+    for key, value in weather.items():
+        concat_cities.append(value)
+    df_main = pd.concat(concat_cities)
+
+    # get population column
+    df_main['population'] = [pop[city] for city in df_main.city_name]
+
+    # numeric weather values as affects demand or supply
+    numeric_cols = ['temp', 'humidity', 'wind_speed']
+
+    past_weather_df = pd.DataFrame()
+    #for the numeric columns, group by datetime and average according to their population weight
+    for col in numeric_cols:
+        #group by the datecolumn for each element in the column average it by it's weight
+        past_weather_df[col] = df_main.groupby(df_main.dt).apply(lambda x : np.average(x[col], weights=x.population))
+
+    return past_weather_df
+
+
+
+
+def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     """
-    Takes in a start and stop date and a country.
+    Takes in a start date and a country.
     Produces a dataframe with a daily date time index and columns:
     day_of_week - numerical day of the week identifier 0 for monday
     holiday_bool - boolean true or false for holiday
     holiday_name - name of the holiday if holiday_bool is true
     Returns a dataframe
     """
+    # get today's date
+    today = date.today()
     #generate the range of daily dates
-    dates = pd.date_range(start=start, end=stop, freq=frequency)
+    dates = pd.date_range(start=start, end=today, freq=frequency)
     #create the holiday object
     country_holidays = holidays.CountryHoliday(country)
     #create a list for the holiday bool and name
     holiday_list = []
     #loop through the dates
-    for date in dates:
+    for d in dates:
         #true if holiday in object, false otherwise
-        holiday_bool = date in country_holidays
-        holiday_names = country_holidays.get(date)
+        holiday_bool = d in country_holidays
+        holiday_names = country_holidays.get(d)
         holiday_list.append([holiday_bool, holiday_names])
     #create return dataframe
     holidays_data = pd.DataFrame(holiday_list, index=dates, columns=['holiday', 'holiday_name'])
     holidays_data.holiday=holidays_data.holiday.astype('int')
+    # add whether it is weekend
+    holidays_data['weekend'] = 0
+    holidays_data.loc[(holidays_data.index.dayofweek==5) | (holidays_data.index.dayofweek==6), 'weekend'] = 1
     return holidays_data
 
 
@@ -300,5 +438,28 @@ def get_all(hour=11):
     for df in dfs.values():
         df_all = df_all.join(df, how='outer')
     # wind production data is only available till 2020-11-18, so cut the date
-    df_all = df_all[df_all.index < '2020-11-19 00:00:00']
+    #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
     return df_all
+
+def get_data(hour=11):
+    '''it will return the up to date data, which can be used
+    for furture forecasting'''
+    df_price = get_shifted_price()
+    df_price_11 = df_price[df_price.index.hour==hour]
+    df_weather = get_weather()
+    df_weather = df_weather[['wind_speed','humidity', 'temp']]
+    df_weather_11 = df_weather[df_weather.index.hour==hour]
+    # change the index of df_holidays so that it can be joined with others
+    df_holidays = get_holidays().drop(columns=['holiday_name'])
+    df_holidays['time']=f'{str(hour)}:00'
+    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
+    df_holidays.index = df_holidays.index + df_holidays.time
+    df_holidays_11 = df_holidays.drop('time', axis=1)
+    # joining the dataframes
+    dfs = dict(weather=df_weather_11, holidays=df_holidays_11)
+    # merge all features
+    df_all = df_price_11
+    for df in dfs.values():
+        df_all = df_all.join(df, how='outer')
+    return df_all
+

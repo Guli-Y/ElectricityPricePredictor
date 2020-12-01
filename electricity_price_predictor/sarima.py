@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from sklearn.preprocessing import StandardScaler
+
 
 def get_daily(hour=11):
     '''it returns a subset of price data based on hour'''
@@ -50,7 +52,7 @@ def plot_forecast(forecast, train, test, lower_int, upper_int, mape=None, mase=N
 def train_sarima(data=False, hour=11,
                  split_date='2019-10-22 11:00:00',
                  n=30, exog=False):
-    '''hour: forecasting timepoint of a day, range(0, 23),
+    '''hour: hour of a day, range(0, 23),
     split_date: train, test splitted on this date,
     n: number of days that will be forecasted,
     exog: in case of sarimax, takes (list of exog features, order, seasonal_order)
@@ -78,22 +80,34 @@ def train_sarima(data=False, hour=11,
         # walk one day forward to set train_set
         predict_date = df[df.index == split_date[0]].index + pd.Timedelta(days=i)
         train_set = df[df.index < predict_date[0]]
+        train_set.index = pd.DatetimeIndex(train_set.index.values,
+                               freq=train_set.index.inferred_freq)
         # Build Model without exogenous features
         if isinstance(exog, bool):
             sarima = SARIMAX(train_set, order=(1, 1, 1),
-                                        seasonal_order=(1,0,1,7), freq='D')
-            sarima = sarima.fit()
+                                        seasonal_order=(1,0,2,7))
+            sarima = sarima.fit(maxiter=200)
             # Forecast
             results = sarima.get_forecast(1, alpha=0.05)
             forecast = sarima.forecast(1, alpha=0.05)
             confidence_int = results.conf_int()
         # Build Model with exogenous features
         else:
+            # StandardScaling the exogenous features
+            # scaler = StandardScaler()
+            # scaler = scaler.fit(train_set[['wind_speed', 'temp', 'humidity']])
+            # train_set.loc[:,['wind_speed', 'temp', 'humidity']]=\
+            # scaler.transform(train_set[['wind_speed', 'temp', 'humidity']])
+            # training model
             sarima = SARIMAX(train_set.price, exog=train_set[exog[0]],
-                         order=exog[1], seasonal_order=exog[2], freq='D')
-            sarima = sarima.fit()
-            # Forecast
+                         order=exog[1], seasonal_order=exog[2])
+            sarima = sarima.fit(maxiter=200)
+            # get features for forecast
             exog_fore = test[test.index==predict_date[0]][exog[0]]
+            # scaling features for forecast
+            # exog_fore.loc[:,['wind_speed', 'temp', 'humidity']]=\
+            # scaler.transform(exog_fore[['wind_speed', 'temp', 'humidity']])
+            # forecasting
             results = sarima.get_forecast(1, exog=exog_fore, alpha=0.05)
             forecast = sarima.forecast(1, exog=exog_fore, alpha=0.05)
             confidence_int = results.conf_int()
@@ -109,11 +123,3 @@ def train_sarima(data=False, hour=11,
     forecast = pd.DataFrame(forecasts, index=test.index, columns=['price'])
 
     return forecast, lower, upper, mape, mase, train, test
-
-def plot_sarima_forecast(hour=11, split_date = '2019-10-22 11:00:00', n=30):
-    '''it uses sarima model and walk forward validation to forecast elect_price
-    on hour=11 for next n=30 days and plot the forecast results'''
-    forecast, lower, upper, mape, mase, train, test = \
-    train_sarima(hour=hour, split_date=split_date, n=n)
-    plot_forecast(forecast, train.iloc[-3*n:], test, lower, upper, mape=mape, mase=mase)
-

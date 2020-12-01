@@ -15,7 +15,12 @@ xlrd
 Flask==1.1.1
 Flask-Cors==3.0.8
 gunicorn==20.0.4
+<<<<<<< HEAD
 streamlit
 matplotlib
 
 
+=======
+joblib
+geopy
+>>>>>>> 78e1eb484b9fb629ec897303e7c39a5297c16f54
