@@ -89,7 +89,7 @@ import matplotlib.image as mpimg
 # img = mpimg.imread('/notebooks/DK1.png')
 # plt.imshow(img)
 from PIL import Image
-image = Image.open('DK1.png')
+image = Image.open('/raw_data/im1.jpg')
 st.image(image, use_column_width=True)
 
 # @st.cache
