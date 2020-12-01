@@ -87,9 +87,9 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 # img = mpimg.imread('/notebooks/DK1.png')
-# plt.imshow(img)
+# # plt.imshow(img)
 from PIL import Image
-image = Image.open('C:/Users/Gesi/code/Guli-Y/electricity_price_predictor/DK1.png')
+image = Image.open('DK1.png')
 st.image(image, use_column_width=True)
 
 # @st.cache
