@@ -83,9 +83,13 @@ df = get_line_chart_data()
 
 st.line_chart(df)
 
-from PIL import Image
-image = Image.open("DK1.png")
-image
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+img = mpimg.imread('../DK1.png')
+plt.imshow(img)
+
+
 # @st.cache
 # def get_map_data():
 #     print('get_map_data called')
