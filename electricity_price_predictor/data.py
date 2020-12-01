@@ -3,10 +3,13 @@ import numpy as np
 import pandas as pd
 from datetime import timedelta, date
 import holidays
+import requests
+import time
+from geopy.geocoders import Nominatim
 
 def file_names(path='../'):
     csv_files = []
-    for root, direc, files in os.walk('../'):
+    for root, direc, files in os.walk(path):
         if 'raw_data\\' in root:
             csv_files.append(files)
     return csv_files
@@ -24,23 +27,6 @@ def get_price(path='../raw_data/price/'):
     df = df[df.price!='-'] # filtering the timestamps till 24.11.2020
     df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
     df['price'] = df.price.astype('float')
-    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
-    df.drop(columns=['time'], inplace=True)
-    return df
-
-def get_load(path='../raw_data/load/'):
-    load_files = file_names()[1]
-    df = pd.read_csv(path+load_files[0])
-    for file in load_files[1:]:
-        df_2 = pd.read_csv(path+file)
-        df = pd.concat([df, df_2])
-    df = df.reset_index(drop=True)
-    df = df.drop(columns='Day-ahead Total Load Forecast [MW] - BZN|DK1')
-    df.columns = ['time', 'load']
-    df['time'] = df.time.str[:16]
-    df = df[df.load!='-'] # filtering the timestamps till 24.11.2020
-    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
-    df['load'] = df.load.astype('float')
     df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
     df.drop(columns=['time'], inplace=True)
     return df
@@ -75,39 +61,6 @@ def get_shifted_price():
     price_df = price_df.sort_index()
 
     return price_df
-
-
-def get_shifted_load():
-    """Takes in dataframe and performs shift to compensate for daylight saving"""
-    df = get_load()
-    df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
-    df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
-    df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
-    df_4 = df.loc['2016-03-27 02:00:00':'2016-10-30 02:00:00']
-    df_5 = df.loc['2016-10-30 03:00:00':'2017-03-26 01:00:00']
-    df_6 = df.loc['2017-03-26 02:00:00':'2017-10-29 02:00:00']
-    df_7 = df.loc['2017-10-29 03:00:00':'2018-03-25 01:00:00']
-    df_8 = df.loc['2018-03-25 02:00:00':'2018-10-28 02:00:00']
-    df_9 = df.loc['2018-10-28 03:00:00':'2019-03-31 01:00:00']
-    df_10 = df.loc['2019-03-31 02:00:00':'2019-10-27 02:00:00']
-    df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
-    df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
-    df_13 = df.loc['2020-10-25 03:00:00':'2020-11-23 16:00:00']
-
-    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
-    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
-
-    load_df = df_1
-    for data in no_shift[1:]:
-        load_df = pd.concat([load_df, data])
-    for data in df_shift:
-        data = data.shift(periods=-1).dropna()
-        load_df = pd.concat([load_df, data])
-
-    load_df = load_df.sort_index()
-
-    return load_df
-
 
 def get_weather(path='../raw_data/weather_2015_2020.csv'):
     df = pd.read_csv(path)
@@ -216,6 +169,85 @@ def get_weather_2(path='../raw_data/weather_2015_2020.csv'):
 
     return weather_df
 
+def get_weather_forecast(city):
+    """returns the weather forecast for a given Danish city
+    in json format"""
+
+    key = '7028ef7cb1384c020af39dc40e0e14b5'
+
+    geolocator = Nominatim(user_agent="dk_explorer")
+    location = geolocator.geocode(city + ' DK')
+    lat = location.latitude
+    lon = location.longitude
+
+    url = f'https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={key}&units=metric'
+    result = requests.get(url).json()
+
+    return result
+
+def get_weather_48():
+    """returns a dataframe with average (weighted) weather for next 48 hours
+    in DK1 zone
+    """
+    # cities in DK1 region
+    cities = ['Aalborg', 'Aarhus', 'Esbjerg', 'Herning',
+              'Horsens', 'Kolding','Odense', 'Randers',
+              'Silkeborg', 'Vejle', 'Viborg']
+
+    # retireive weather for each city with get_weather_forecast
+    weather = {}
+    for city in cities:
+        weather[city] = get_weather_forecast(city)['hourly']
+
+    # create df
+    appended_df = []
+    for key, value in weather.items():
+        city = str(key)
+        df = pd.DataFrame(value)
+        df['city_name'] = city
+        df = df[['dt', 'temp', 'wind_speed', 'humidity', 'city_name']]
+        # datetime covert
+        times = pd.to_datetime(df['dt'], unit='s', origin='unix')
+        df['dt'] = times.dt.tz_localize('UTC').dt.tz_convert('Europe/Copenhagen').dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        appended_df.append(df)
+
+    appended_df = pd.concat(appended_df)
+
+    pop = {'Aarhus': 349_983,
+        'Odense': 204_895,
+        'Aalborg': 217_075,
+        'Esbjerg': 115_748,
+        'Vejle': 111_743,
+        'Randers': 96_559,
+        'Viborg': 93_819,
+        'Kolding': 89_412,
+        'Silkeborg': 89_328,
+        'Herning': 86_348,
+        'Horsens': 83_598}
+
+    appended_df['population'] = [pop[city] for city in appended_df.city_name]
+
+    # numeric weather values as affects demand or supply
+    numeric_cols = ['temp', 'humidity', 'wind_speed']
+
+    weather_df = pd.DataFrame()
+
+    #for the numeric columns, group by datetime and average according to their population weight
+    for col in numeric_cols:
+    #group by the datecolumn for each element in the column average it by it's weight
+        weather_df[col] = appended_df.groupby(appended_df.dt).apply(lambda x : np.average(x[col], weights=x.population))
+
+    return weather_df
+
+def get_updated_weather():
+
+    history = get_weather_2()
+    past = get_weather_past()
+    forecast = get_weather_forecast()
+    # save the df_all
+    df_all.save_csv('updated_data.csv')
+    return None
 
 def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     """
@@ -226,10 +258,10 @@ def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     holiday_name - name of the holiday if holiday_bool is true
     Returns a dataframe
     """
-    # get today's date
-    today = date.today()
+    # get end date
+    end = str(date.today()+timedelta(7))
     #generate the range of daily dates
-    dates = pd.date_range(start=start, end=today, freq=frequency)
+    dates = pd.date_range(start=start, end=end, freq=frequency)
     #create the holiday object
     country_holidays = holidays.CountryHoliday(country)
     #create a list for the holiday bool and name
@@ -248,7 +280,53 @@ def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     holidays_data.loc[(holidays_data.index.dayofweek==5) | (holidays_data.index.dayofweek==6), 'weekend'] = 1
     return holidays_data
 
+def get_load(path='../raw_data/load/'):
+    load_files = file_names()[1]
+    df = pd.read_csv(path+load_files[0])
+    for file in load_files[1:]:
+        df_2 = pd.read_csv(path+file)
+        df = pd.concat([df, df_2])
+    df = df.reset_index(drop=True)
+    df = df.drop(columns='Day-ahead Total Load Forecast [MW] - BZN|DK1')
+    df.columns = ['time', 'load']
+    df['time'] = df.time.str[:16]
+    df = df[df.load!='-'] # filtering the timestamps till 24.11.2020
+    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
+    df['load'] = df.load.astype('float')
+    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
+    df.drop(columns=['time'], inplace=True)
+    return df
 
+def get_shifted_load():
+    """Takes in dataframe and performs shift to compensate for daylight saving"""
+    df = get_load()
+    df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
+    df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
+    df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
+    df_4 = df.loc['2016-03-27 02:00:00':'2016-10-30 02:00:00']
+    df_5 = df.loc['2016-10-30 03:00:00':'2017-03-26 01:00:00']
+    df_6 = df.loc['2017-03-26 02:00:00':'2017-10-29 02:00:00']
+    df_7 = df.loc['2017-10-29 03:00:00':'2018-03-25 01:00:00']
+    df_8 = df.loc['2018-03-25 02:00:00':'2018-10-28 02:00:00']
+    df_9 = df.loc['2018-10-28 03:00:00':'2019-03-31 01:00:00']
+    df_10 = df.loc['2019-03-31 02:00:00':'2019-10-27 02:00:00']
+    df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
+    df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
+    df_13 = df.loc['2020-10-25 03:00:00':'2020-11-23 16:00:00']
+
+    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
+    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
+
+    load_df = df_1
+    for data in no_shift[1:]:
+        load_df = pd.concat([load_df, data])
+    for data in df_shift:
+        data = data.shift(periods=-1).dropna()
+        load_df = pd.concat([load_df, data])
+
+    load_df = load_df.sort_index()
+
+    return load_df
 def get_days_dummies(start='1/1/2015', stop='23/11/2020', frequency='D'):
     """
     Takes in a start and stop date and frequency.
@@ -366,12 +444,14 @@ def get_all(hour=11):
     #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
     return df_all
 
+
 def get_data(hour=11):
-    '''it will return the up to date data, which can be used
-    for furture forecasting'''
+    '''it will return past and furture datas in two different dataframes,
+    which can be used for furture forecasting'''
+
     df_price = get_shifted_price()
     df_price_11 = df_price[df_price.index.hour==hour]
-    df_weather = get_weather()
+    df_weather = get_weather_2() # get_updated_weather
     df_weather = df_weather[['wind_speed','humidity', 'temp']]
     df_weather_11 = df_weather[df_weather.index.hour==hour]
     # change the index of df_holidays so that it can be joined with others
@@ -386,5 +466,7 @@ def get_data(hour=11):
     df_all = df_price_11
     for df in dfs.values():
         df_all = df_all.join(df, how='outer')
-    return df_all
-
+    # split past and furture
+    past = df_all[~df_all.price.isnull()]
+    future = df_all[df_all.price.isnull()].drop('price', axis=1)
+    return past, future
