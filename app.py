@@ -86,9 +86,9 @@ st.line_chart(df)
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-img = mpimg.imread('/notebooks/DK1.png')
-plt.imshow(img)
-
+# img = mpimg.imread('/notebooks/DK1.png')
+# plt.imshow(img)
+st.image('DK1.png',use_column_width=True)
 
 # @st.cache
 # def get_map_data():
