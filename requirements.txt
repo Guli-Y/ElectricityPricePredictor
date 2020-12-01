@@ -17,5 +17,5 @@ Flask-Cors==3.0.8
 gunicorn==20.0.4
 streamlit
 matplotlib
-electricity_price_predictor.data
+
 
