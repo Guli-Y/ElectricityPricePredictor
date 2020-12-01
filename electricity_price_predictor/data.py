@@ -158,6 +158,64 @@ def get_weather(path='../raw_data/weather_2015_2020.csv'):
 
     return weather_df
 
+def get_weather_2(path='../raw_data/weather_2015_2020.csv'):
+    df = pd.read_csv(path)
+
+    df['dt'] = pd.to_datetime(df.dt)
+
+    # drop unnecessary columns
+    to_drop = ['dt_iso','timezone','lat', 'lon','sea_level','grnd_level',
+               'rain_1h','rain_3h', 'pressure', 'snow_1h', 'snow_3h',
+               'temp_min','temp_max','weather_id', 'weather_description',
+               'weather_icon', 'wind_deg', 'feels_like','clouds_all']
+    df = df.drop(to_drop, axis=1)
+
+    # population of each city in the df
+    pop = {'Aarhus': 349_983,
+        'Odense': 204_895,
+        'Aalborg': 217_075,
+        'Esbjerg': 115_748,
+        'Vejle': 111_743,
+        'Randers': 96_559,
+        'Viborg': 93_819,
+        'Kolding': 89_412,
+        'Silkeborg': 89_328,
+        'Herning': 86_348,
+        'Horsens': 83_598}
+
+    df['population'] = [pop[city] for city in df.city_name]
+
+    # numeric weather values as affects demand or supply
+    numeric_cols = ['temp', 'humidity', 'wind_speed']
+
+    weather_df = pd.DataFrame()
+
+    #for the numeric columns, group by datetime and average according to their population weight
+    for col in numeric_cols:
+    #group by the datecolumn for each element in the column average it by it's weight
+        weather_df[col] = df.groupby(df.dt).apply(lambda x : np.average(x[col], weights=x.population))
+
+
+    # 25 - 30 nov
+    df_past = pd.read_csv('../raw_data/past_weather.csv')
+    df_past['dt'] = pd.to_datetime(df_past.dt)
+    df_past = df_past.set_index('dt')
+
+    #concat data
+    weather_df = pd.concat([weather_df, df_past])
+
+    # check for missing indices
+    missing_idx = pd.date_range(start = '2015-01-01', end = '2020-11-30', freq='H' ).difference(weather_df.index)
+
+    # impute missing indices with average of bounding rows
+    for idx in missing_idx:
+        weather_df.loc[idx] = weather_df.loc[pd.to_datetime(idx) - timedelta(hours= 1)] + \
+                      weather_df.loc[pd.to_datetime(idx) + timedelta(hours= 1)] / 2
+
+    weather_df = weather_df.sort_index()
+
+    return weather_df
+
 
 def get_holidays(start='1/1/2015', stop='23/11/2020', country='DK', frequency='D'):
     """
