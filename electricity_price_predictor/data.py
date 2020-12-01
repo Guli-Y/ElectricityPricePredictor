@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, date
 import holidays
 
 def file_names(path='../'):
@@ -159,26 +159,28 @@ def get_weather(path='../raw_data/weather_2015_2020.csv'):
     return weather_df
 
 
-def get_holidays(start='1/1/2015', stop='23/11/2020', country='DK', frequency='D'):
+def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     """
-    Takes in a start and stop date and a country.
+    Takes in a start date and a country.
     Produces a dataframe with a daily date time index and columns:
     day_of_week - numerical day of the week identifier 0 for monday
     holiday_bool - boolean true or false for holiday
     holiday_name - name of the holiday if holiday_bool is true
     Returns a dataframe
     """
+    # get today's date
+    today = date.today()
     #generate the range of daily dates
-    dates = pd.date_range(start=start, end=stop, freq=frequency)
+    dates = pd.date_range(start=start, end=today, freq=frequency)
     #create the holiday object
     country_holidays = holidays.CountryHoliday(country)
     #create a list for the holiday bool and name
     holiday_list = []
     #loop through the dates
-    for date in dates:
+    for d in dates:
         #true if holiday in object, false otherwise
-        holiday_bool = date in country_holidays
-        holiday_names = country_holidays.get(date)
+        holiday_bool = d in country_holidays
+        holiday_names = country_holidays.get(d)
         holiday_list.append([holiday_bool, holiday_names])
     #create return dataframe
     holidays_data = pd.DataFrame(holiday_list, index=dates, columns=['holiday', 'holiday_name'])
@@ -305,3 +307,26 @@ def get_all(hour=11):
     # wind production data is only available till 2020-11-18, so cut the date
     #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
     return df_all
+
+def get_data(hour=11):
+    '''it will return the up to date data, which can be used
+    for furture forecasting'''
+    df_price = get_shifted_price()
+    df_price_11 = df_price[df_price.index.hour==hour]
+    df_weather = get_weather()
+    df_weather = df_weather[['wind_speed','humidity', 'temp']]
+    df_weather_11 = df_weather[df_weather.index.hour==hour]
+    # change the index of df_holidays so that it can be joined with others
+    df_holidays = get_holidays().drop(columns=['holiday_name'])
+    df_holidays['time']=f'{str(hour)}:00'
+    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
+    df_holidays.index = df_holidays.index + df_holidays.time
+    df_holidays_11 = df_holidays.drop('time', axis=1)
+    # joining the dataframes
+    dfs = dict(weather=df_weather_11, holidays=df_holidays_11)
+    # merge all features
+    df_all = df_price_11
+    for df in dfs.values():
+        df_all = df_all.join(df, how='outer')
+    return df_all
+
