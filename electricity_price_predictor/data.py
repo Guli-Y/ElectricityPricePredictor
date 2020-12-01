@@ -1,9 +1,12 @@
 import os
 import numpy as np
 import pandas as pd
-import datetime
 from datetime import timedelta, date
+import time
+import datetime
 import holidays
+import requests
+from geopy.geocoders import Nominatim
 
 def file_names(path='../'):
     csv_files = []
