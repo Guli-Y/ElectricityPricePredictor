@@ -37,7 +37,7 @@ import base64
 st.set_page_config(
     page_title="electricity price prediction",
     page_icon=":zap:",
-    layout="wide", # wide
+    layout="centered", # wide
     initial_sidebar_state="collapsed") # collapsed
 
 
@@ -160,15 +160,6 @@ st.image(image, use_column_width=True)
 ###
 
 
-#### Ploting the table and chart side by side
-# col1, col2 = st.beta_columns([1,4])
-
-# with col1:
-#     st.write(df1, use_column_width=True)
-# with col2:
-#     st.line_chart(df)
-
-###
 
 
 
@@ -229,21 +220,21 @@ st.markdown(
 #     #df = read_data()
 #     main()
 
-# def get_map_data():
-#     print('get_map_data called')
-#     return pd.DataFrame(
-#             np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
-#             columns=['lat', 'lon']
-#         )
+def get_map_data():
+    print('get_map_data called')
+    return pd.DataFrame(
+            np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
+            columns=['lat', 'lon']
+        )
 
-# if st.checkbox('Show map', False):
-#     df = get_map_data()
+if st.checkbox('Show map', False):
+    df = get_map_data()
 
-#     st.map(df)
-# else:
-#     from PIL import Image
-#     image = Image.open("DK1.png")
-#     st.image(image, caption='map', use_column_width=False)
+    st.map(df)
+else:
+    from PIL import Image
+    image = Image.open("DK1.png")
+    st.image(image, caption='map', use_column_width=True)
 
 
 
