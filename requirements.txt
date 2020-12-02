@@ -20,4 +20,3 @@ matplotlib
 joblib
 geopy
 xmltodict
-json
