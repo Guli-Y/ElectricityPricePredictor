@@ -16,4 +16,4 @@ streamlit
 matplotlib
 joblib
 geopy
-
+xmltodict
