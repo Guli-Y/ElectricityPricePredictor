@@ -1,11 +1,12 @@
 import os
 import numpy as np
 import pandas as pd
-from datetime import timedelta, date
+from datetime import timedelta, date, timezone, datetime
 import time
-import datetime
 import holidays
 import requests
+import json
+import xmltodict
 from geopy.geocoders import Nominatim
 
 def file_names(path='../'):
@@ -509,6 +510,60 @@ def get_all(hour=11):
     #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
     return df_all
 
+def get_new_price(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
+    """Returns dataframe with day-ahead electricity prices for DK1 within specified date range.
+       API calls to 'https://transparency.entsoe.eu/'
+       start and stop should be datetime objects
+       e.g to get current day-ahead price for DK1 zone.
+       start = datetime.today()
+       stop = start + timedelta(days=1)
+    """
+    #CONVERT TO UTC
+    start_utc = start.astimezone(timezone.utc)
+    stop_utc = stop.astimezone(timezone.utc)
+    #convert to string
+    period_start = datetime.strftime(start_utc, "%Y%m%d%H%M")
+    period_stop = datetime.strftime(stop_utc, "%Y%m%d%H%M")
+    #get response
+    url = "https://transparency.entsoe.eu/api?"
+    params = dict(
+        securityToken= key,
+        documentType= "A44",
+        processType= "A01",
+        in_Domain= "10YDK-1--------W",
+        out_Domain= "10YDK-1--------W",
+        periodStart= period_start,
+        periodEnd= period_stop
+    )
+    response = requests.get(url, params) # XML forma
+
+    # converted to json
+    result = json.loads(
+        json.dumps(
+            xmltodict.parse(response.text)
+        ))['Publication_MarketDocument']
+
+    # get prices
+    price = result['TimeSeries']['Period']['Point']
+    price = pd.DataFrame(price)['price.amount']
+
+    #Get time index
+    begin = result['TimeSeries']['Period']['timeInterval']['start']
+    end = result['TimeSeries']['Period']['timeInterval']['end']
+
+    time_index = pd.date_range(begin, end, freq="H", closed='left')
+
+    #conv to local
+    time_index = time_index.tz_convert('Europe/Copenhagen')
+    # format extra strings at the end
+    time_index = pd.Series(time_index).apply(lambda x: str(x)[:16])
+
+    price_df = pd.DataFrame(price).set_index(time_index)
+    price_df = price_df.rename(columns={'price.amount':'price'})
+
+
+    return price_df
+
 
 def get_data(hour=11):
     '''it will return past and furture datas in two different dataframes,
@@ -533,3 +588,5 @@ def get_data(hour=11):
     past = df_all[~df_all.price.isnull()]
     future = df_all[df_all.price.isnull()].drop('price', axis=1)
     return past, future
+
+
