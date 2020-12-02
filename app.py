@@ -174,22 +174,22 @@ st.image(image, use_column_width=True)
 
 ### Creating a link to download the data or plot
 
-# def get_table_download_link(df):
-#     """Generates a link allowing the data in a given panda dataframe to be downloaded
-#     in:  dataframe
-# #     out: href string
-#     """
-#     csv = df['price'].to_csv(index=False)
-#     b64 = base64.b64encode(
-#         csv.encode()
-#     ).decode()  # some strings <-> bytes conversions necessary here
-#     return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
+def get_table_download_link(df):
+    """Generates a link allowing the data in a given panda dataframe to be downloaded
+    in:  dataframe
+#     out: href string
+    """
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(
+        csv.encode()
+    ).decode()  # some strings <-> bytes conversions necessary here
+    return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
 
-# st.markdown("""Click the link below to download the data in csv format""")
+st.markdown("""Click the link below to download the data in csv format""")
 
-# st.markdown(
-#     get_table_download_link(df['price']), unsafe_allow_html=True
-#     )
+st.markdown(
+    get_table_download_link(df), unsafe_allow_html=True
+    )
 
 
 # st.markdown("""
