@@ -41,33 +41,52 @@ st.set_page_config(
     initial_sidebar_state="auto") # collapsed
 
 
+st.sidebar.markdown("""
+    <font size="96">
+        <span style=“color:white>
+          <b>RAIDEN ENERGY</b>
+        </span>
+    </font>
+    """
+    , unsafe_allow_html=True)
+
+
 raiden = Image.open('raiden.jpg')
-st.sidebar.markdown(f"""
-    # RAIDEN ENERGY
-    """)
+st.sidebar.image(raiden, use_column_width=True)
+# st.sidebar.markdown(f"""
+#     # RAIDEN ENERGY
+#     """)
 
 # font_size = st.sidebar.slider('Changer header size', 16, 72, 36)
 
-SIDEBAR_CSS = f"""
-<h1 style=“font-size:44px;
-color:blue>
-"""
+# SIDEBAR_CSS = f"""
+# <h1 style=“font-size:44px;
+# color:red>
+# """
 
-### Creating the sidebar
-st.sidebar.image(raiden, use_column_width=True)
-st.write(SIDEBAR_CSS, unsafe_allow_html=True)
+# ### Creating the sidebar
+
+# st.write(SIDEBAR_CSS, unsafe_allow_html=True)
 
 
-TITLE_CSS = f"""
-<h1 style=“font-size:44px;
-color:rgb(0,0,152)“>
-"""
+st.markdown(
+    """
+<style>
+.sidebar .sidebar-content {
+    background-image: linear-gradient(#2e7bcf,#2e7bcf);
+    color: rgb(0,0,255);
+}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
 
 
 st.title("ELECTRA PROJECT")
-st.write(TITLE_CSS, unsafe_allow_html=True)
+# st.write(TITLE_CSS, unsafe_allow_html=True)
 st.markdown("## Day Ahead Electricity Price Predictor ")
-st.markdown('<style>h1{color: blue;}</style>', unsafe_allow_html=True)
+st.markdown('<style>h1{color: black}</style>', unsafe_allow_html=True)
 ###
 
 
