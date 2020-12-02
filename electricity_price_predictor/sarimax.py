@@ -14,6 +14,7 @@ def plot_forecast(forecast, train, lower, upper):
     title = 'Electricity Price Forecast - next 48 hours (EUR/Mwh)'
     plt.title(title)
     plt.legend(loc='upper left', fontsize=8)
+    plt.savefig('../forecast_data/forecast.png')
 
 def sarimax_forecast(hour=11):
     '''hour: hour of a day, range(0, 23),
@@ -67,5 +68,5 @@ def plot_sarima_forecast_48():
     '''it calls sarimax_forecast_48 function and
     plot the forecast results using plot_forecast function'''
     forecast, past = sarimax_forecast_48()
-    print(forecast)
+    forecast.to_csv('../forecast_data/forecast_data.csv')
     plot_forecast(forecast.price, past, forecast.lower, forecast.upper)
