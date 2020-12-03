@@ -62,6 +62,9 @@ def get_price_api(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
     return price_df
 
 def get_updated_price():
+    # get past price
+    old_price = pd.read_csv('../raw_data/updated_price.csv', parse_dates=True, index_col='time')
+
     # get day ahead price
     today = date.today()
     tomorrow = today + timedelta(days=1)
@@ -70,8 +73,7 @@ def get_updated_price():
     new_price = get_price_api(start, stop)
     new_price.index.name = 'time'
     new_price.set_index(pd.DatetimeIndex(new_price.index), inplace=True)
-    # get past price
-    old_price = pd.read_csv('../raw_data/updated_price.csv', parse_dates=True, index_col='time')
+
     # update the price csv
     if new_price.index[0] > old_price.index[-1]:
         df = pd.concat([old_price, new_price])
@@ -414,10 +416,9 @@ def get_data(hour=11):
     df_all = df_price_11
     for df in dfs.values():
         df_all = df_all.join(df, how='outer')
-    # split past and furture
-    past = df_all[~df_all.price.isnull()]
-    future = df_all[df_all.price.isnull()].drop('price', axis=1)
-    return past, future
+    #past = df_all[~df_all.price.isnull()]
+    #future = df_all[df_all.price.isnull()].drop('price', axis=1)
+    return df_all
 
 ################## functions for validation and exploration #####################
 

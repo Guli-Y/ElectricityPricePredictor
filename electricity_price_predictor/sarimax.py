@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-import joblib
 
 def plot_forecast(forecast, train, lower, upper):
     '''it will plot a forecast'''
@@ -26,7 +25,13 @@ def plot_forecast(forecast, train, lower, upper):
 def sarimax_forecast(hour=11):
     '''hour: hour of a day, range(0, 23),
     returns forecast, upper_intervals, lower_intervals, mape, mase, test, train'''
-    past, future = get_data(hour=hour)
+
+    df_all = get_data(hour=hour)
+
+    # split past and furture
+    past = df_all[~df_all.price.isnull()]
+    future = df_all[df_all.price.isnull()].drop('price', axis=1)
+
     future = future.iloc[:1,:]
     if future.temp.isnull()[0]:
         forecast = np.array([np.nan])
