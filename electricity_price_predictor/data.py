@@ -31,11 +31,36 @@ def get_price(path='../raw_data/price/'):
     df['price'] = df.price.astype('float')
     df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
     df.drop(columns=['time'], inplace=True)
+
+    df.to_csv('../raw_data/updated_price')
+    return df
+
+def get_updated_price():
+    today = date.today()  # today's date
+    start = datetime.combine(today, datetime.min.time())  # initialize to midnight
+    stop = start + timedelta(days=1)
+
+    old_price = get_price()
+    new_price = get_new_price(start, stop)
+    new_price.index.name = 'time'
+    old_price.index = pd.to_datetime(old_price.index)
+    new_price.index = pd.to_datetime(new_price.index)
+
+    if new_price.index[-24:].to_list() == old_price.index[-24:].to_list():
+        df = old_price
+    else:
+        df = pd.concat([old_price, new_price])
+        df.index = pd.to_datetime(df.index)#
+
+    df = df.sort_index()
+
+    df.to_csv('../raw_data/updated_price.csv')
+
     return df
 
 def get_shifted_price():
     """Takes in dataframe and performs shift to compensate for daylight saving"""
-    df = get_price()
+    df = get_updated_price()
     df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
     df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
     df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
@@ -64,9 +89,9 @@ def get_shifted_price():
 
     return price_df
 
+
 def get_weather(path='../raw_data/weather_2015_2020.csv'):
     df = pd.read_csv(path)
-
     df['dt'] = pd.to_datetime(df.dt)
 
     # drop unnecessary columns
@@ -556,7 +581,7 @@ def get_new_price(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
     #conv to local
     time_index = time_index.tz_convert('Europe/Copenhagen')
     # format extra strings at the end
-    time_index = pd.Series(time_index).apply(lambda x: str(x)[:16])
+    time_index = pd.Series(time_index).apply(lambda x: str(x)[:19])
 
     price_df = pd.DataFrame(price).set_index(time_index)
     price_df = price_df.rename(columns={'price.amount':'price'})
