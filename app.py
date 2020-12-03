@@ -97,7 +97,7 @@ st.markdown(
     """
 <style>
 .sidebar .sidebar-content {
-    background-image: linear-gradient(#001e6f, #001e6f);
+    background-image: linear-gradient(blue, blue);
     color: rgb(0,0,0);
 }
 </style>
