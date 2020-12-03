@@ -25,14 +25,8 @@ import numpy as np
 from PIL import Image
 from datetime import date, timedelta
 import base64
-import matplotlib.pyplot as plt
-from bokeh.plotting import figure
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
-# from electricity_price_predictor.data import get_all, get_price
-# from sklearn.preprocessing import MinMaxScaler
-# from sklearn.linear_model import LinearRegression
-# import statsmodels.formula.api as sm
+
+
 
 
 
