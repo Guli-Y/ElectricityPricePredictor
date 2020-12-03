@@ -123,22 +123,22 @@ with col2:
 ###
 
 
-df_half = df.loc[24:, 'price']
-df_half = df_half.reset_index(drop=True)
+# df_half = df.loc[24:, 'price']
+# df_half = df_half.reset_index(drop=True)
 
-###
-st.markdown("Table 2 - DK2 " + today_3 + " - Hourly Electricity Prices")
-col1, col2 = st.beta_columns([4,1])
+# ###
+# st.markdown("Table 2 - DK2 " + today_3 + " - Hourly Electricity Prices")
+# col1, col2 = st.beta_columns([4,1])
 
 
 
-with col1:
-    # st.line_chart(df_half)
+# with col1:
+#     # st.line_chart(df_half)
 
-    st.area_chart(df_half, use_container_width=True)
+#     st.area_chart(df_half, use_container_width=True)
 
-with col2:
-    st.write(df_half, use_column_width=True)
+# with col2:
+#     st.write(df_half, use_column_width=True)
 
 
 image = Image.open('forecast_data/forecast.png')
