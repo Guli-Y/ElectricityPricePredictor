@@ -36,16 +36,30 @@ st.set_page_config(
 
 ### New changes from Ismael
 
+# st.markdown(
+#     """
+# <style>
+# .sidebar{
+#     background-color: rgb(0,0,255);
+# }
+# </style>
+# """,
+#     unsafe_allow_html=True,
+# )
+
+
 st.markdown(
     """
 <style>
-.sidebar{
-    background-color: rgb(0,0,255);
+.sidebar .sidebar-content {
+    background-image: linear-gradient(#2e7bcf,#2e7bcf);
+    color: white;
 }
 </style>
 """,
     unsafe_allow_html=True,
 )
+
 
 
 st.sidebar.markdown("""
@@ -108,13 +122,15 @@ df = pd.read_csv('forecast_data/forecast_data.csv')
 
 today = date.today()
 today = str(today)
-tomorrow = date.today() + timedelta(days=1)
-tomorrow = str(tomorrow)
+today_2 = date.today() + timedelta(days=2)
+today_2 = str(today_2)
+today_3 = date.today() + timedelta(days=3)
+today_3 = str(today_3)
 
 
 
 #### Ploting the table and chart side by side
-st.markdown("Table 1 - DK1 " + today + " - Hourly Electricity Prices")
+st.markdown("Table 1 - DK1 " + today_2 + " - Hourly Electricity Prices")
 col1, col2 = st.beta_columns([4,1])
 
 with col1:
@@ -130,7 +146,7 @@ df_half = df.loc[24:, 'price']
 df_half = df_half.reset_index(drop=True)
 
 ###
-st.markdown("Table 2 - DK2 " + tomorrow + " - Hourly Electricity Prices")
+st.markdown("Table 2 - DK2 " + today_3 + " - Hourly Electricity Prices")
 col1, col2 = st.beta_columns([4,1])
 
 
