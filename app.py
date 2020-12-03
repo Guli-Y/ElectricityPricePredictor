@@ -97,7 +97,7 @@ st.markdown(
     """
 <style>
 .sidebar .sidebar-content {
-    background-image: linear-gradient(#437ae6, #cca556);
+    background-image: linear-gradient(#437ae6, #437ae6);
     color: rgb(0,0,0);
 }
 </style>
@@ -135,13 +135,14 @@ st.markdown("## Electricity Price Predictor for Denmark ")
 st.markdown('<style>h1{color: black}</style>', unsafe_allow_html=True)
 ###
 
+st.markdown("Map of Denmark showing bidding zones of the energy market")
 
 image = Image.open("DK1_edited.png")
 st.image(image, caption='map', use_column_width=True)
 
-st.markdown("\n")
 
-st.markdown("Map of Denmark showing bidding zones of the energy market")
+
+
 ### Table 1, price prediction
 # st.markdown("Table 1 - DK1 4th of December - Electricity Prices")
 # @st.cache
@@ -172,7 +173,7 @@ tomorrow = date.today() + timedelta(days=1)
 tomorrow = str(tomorrow)
 
 
-chart_data = df.loc[:24,]
+
 #### Ploting the table and chart side by side
 st.markdown("Table 1 - DK1 " + today + " - Hourly Electricity Prices")
 col1, col2 = st.beta_columns([4,1])
