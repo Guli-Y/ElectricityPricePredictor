@@ -8,9 +8,10 @@ import joblib
 def plot_forecast(forecast, train, lower, upper):
     '''it will plot a forecast'''
     plt.figure(figsize=(10,4), dpi=100)
-    plt.plot(train, label='training', color='black')
-    plt.plot(forecast, label='forecast', color='orange')
-    plt.fill_between(lower.index, lower, upper, color='k', alpha=.15)
+    plt.plot(train, label='past', color='black')
+    plt.plot(forecast, label='forecast', color='blue')
+    plt.fill_between(lower.index, lower, upper, label='confidence interval',
+                    color='k', alpha=.15)
     title = 'Electricity Price Forecast - next 48 hours (EUR/Mwh)'
     plt.title(title)
     plt.legend(loc='upper left', fontsize=8)
@@ -69,4 +70,6 @@ def plot_sarima_forecast_48():
     plot the forecast results using plot_forecast function'''
     forecast, past = sarimax_forecast_48()
     forecast.to_csv('../forecast_data/forecast_data.csv')
+    forecast.index = forecast.index.hour
+    past.index = past.index.hour
     plot_forecast(forecast.price, past, forecast.lower, forecast.upper)
