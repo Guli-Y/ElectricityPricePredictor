@@ -23,7 +23,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from PIL import Image
+from datetime import date, timedelta
 import base64
+import matplotlib.pyplot as plt
+from bokeh.plotting import figure
 # import matplotlib.pyplot as plt
 # import matplotlib.image as mpimg
 # from electricity_price_predictor.data import get_all, get_price
@@ -38,17 +41,41 @@ st.set_page_config(
     page_title="electricity price prediction",
     page_icon=":zap:",
     layout="centered", # wide
-    initial_sidebar_state="collapsed") # collapsed
+    initial_sidebar_state="expanded") # collapsed
 
+
+### New changes from Ismael
 
 st.sidebar.markdown("""
-    <font size="96">
-        <span style=“color:white>
-          <b>RAIDEN ENERGY</b>
-        </span>
-    </font>
+    <style>
+        #title {color: white;
+        font-size: 55px;
+        text-align: right;}
+    </style>
+<b id="title"> :zap::zap::zap::zap: <br>
+RAIDEN ENERGY <br>
+:zap::zap::zap::zap: </b>
     """
     , unsafe_allow_html=True)
+st.sidebar.markdown("""
+     <style>
+        #subtitle {color: white;
+        font-size: 24px}
+    </style>
+     <b id="subtitle"> Powering up your life </b>
+    """
+    , unsafe_allow_html=True)
+
+
+
+# st.sidebar.markdown("""
+#     <font size="96">
+#         <span style=“color:white>
+#           <b>RAIDEN ENERGY</b>
+#         </span>
+#     </font>
+#     """
+#     , unsafe_allow_html=True)
 
 
 raiden = Image.open('raiden.jpg')
@@ -69,11 +96,14 @@ st.sidebar.image(raiden, use_column_width=True)
 # st.write(SIDEBAR_CSS, unsafe_allow_html=True)
 
 
+
+### New changes from Ismael
+
 st.markdown(
     """
 <style>
 .sidebar .sidebar-content {
-    background-image: linear-gradient(#001e6f, #001e6f);
+    background-image: linear-gradient(#437ae6, #cca556);
     color: rgb(0,0,0);
 }
 </style>
@@ -82,16 +112,42 @@ st.markdown(
 )
 
 
+# st.markdown("""
+# <style>
+# body {
+#     color: #111;
+#     background-color: linear-gradient(#437ae6, #cca556);
+# }
+# </style>
+#     """, unsafe_allow_html=True)
+
+# st.markdown(
+#     """
+# <style>
+# .sidebar .sidebar-content {
+#     background-image: linear-gradient(#001e6f, #001e6f);
+#     color: rgb(0,0,0);
+# }
+# </style>
+# """,
+#     unsafe_allow_html=True,
+# )
+
+
 
 st.title("ELECTRA PROJECT")
 # st.write(TITLE_CSS, unsafe_allow_html=True)
-st.markdown("## Day Ahead Electricity Price Predictor ")
+st.markdown("## Electricity Price Predictor for Denmark ")
 st.markdown('<style>h1{color: black}</style>', unsafe_allow_html=True)
 ###
 
 
+image = Image.open("DK1_edited.png")
+st.image(image, caption='map', use_column_width=True)
 
+st.markdown("\n")
 
+st.markdown("Map of Denmark showing bidding zones of the energy market")
 ### Table 1, price prediction
 # st.markdown("Table 1 - DK1 4th of December - Electricity Prices")
 # @st.cache
@@ -116,33 +172,54 @@ df = pd.read_csv('forecast_data/forecast_data.csv')
 #         )
 # ###
 
+today = date.today()
+today = str(today)
+tomorrow = date.today() + timedelta(days=1)
+tomorrow = str(tomorrow)
 
+
+chart_data = df.loc[:24,]
 #### Ploting the table and chart side by side
-st.markdown("Table 1 - DK1 25th of November - Hourly Electricity Prices")
-col1, col2 = st.beta_columns([1,3])
+st.markdown("Table 1 - DK1 " + today + " - Hourly Electricity Prices")
+col1, col2 = st.beta_columns([4,1])
 
 with col1:
-    st.write(df.loc[:23, 'price'], use_column_width=True)
+    st.area_chart(df.loc[:24, 'price'])
+
 with col2:
-    st.line_chart(df.loc[:23,'price'])
+    st.write(df.loc[:24, 'price'], use_column_width=True)
 
 ###
 
 
+df_half = df.loc[24:, 'price']
+df_half = df_half.reset_index(drop=True)
+
 ###
-st.markdown("Table 2 - DK1 26th of November - Hourly Electricity Prices")
-col1, col2 = st.beta_columns([1,3])
+st.markdown("Table 2 - DK2 " + tomorrow + " - Hourly Electricity Prices")
+col1, col2 = st.beta_columns([4,1])
+
+
+
+
+
+
+
+
+
 
 with col1:
-    st.write(df.loc[23:, 'price'], use_column_width=True)
-with col2:
-    st.line_chart(df.loc[23:, 'price'])
+    # st.line_chart(df_half)
 
+    st.area_chart(df_half, use_container_width=True)
+
+with col2:
+    st.write(df_half, use_column_width=True)
 
 
 image = Image.open('forecast_data/forecast.png')
 
-st.image(image, use_column_width=True)
+st.image(image, width=900, use_column_width=True)
 
 ### Table 2, price prediction
 # st.markdown("Table 2 - 5th of December, Electricity Prices")
@@ -221,8 +298,6 @@ st.markdown(
 #     main()
 
 
-image = Image.open("DK1.png")
-st.image(image, caption='map', use_column_width=True)
 
 
 
