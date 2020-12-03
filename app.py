@@ -98,34 +98,12 @@ st.markdown(
 <style>
 .sidebar .sidebar-content {
     background-image: linear-gradient(#001e6f, #001e6f);
-    color: rgb(0,0,0);
+
 }
 </style>
 """,
     unsafe_allow_html=True,
 )
-
-
-# st.markdown("""
-# <style>
-# body {
-#     color: #111;
-#     background-color: linear-gradient(#437ae6, #cca556);
-# }
-# </style>
-#     """, unsafe_allow_html=True)
-
-# st.markdown(
-#     """
-# <style>
-# .sidebar .sidebar-content {
-#     background-image: linear-gradient(#001e6f, #001e6f);
-#     color: rgb(0,0,0);
-# }
-# </style>
-# """,
-#     unsafe_allow_html=True,
-# )
 
 
 
@@ -143,29 +121,10 @@ st.image(image, caption='map', use_column_width=True)
 
 
 
-### Table 1, price prediction
-# st.markdown("Table 1 - DK1 4th of December - Electricity Prices")
-# @st.cache
-# def get_dataframe_data():
-#     print('get_dataframe_data called')
-#     return pd.DataFrame(
-#             np.random.randn(24, 1),
-#             columns=('col %d' % i for i in range(1))
-
-#         )
 
 df = pd.read_csv('forecast_data/forecast_data.csv')
 
 
-# ### Line chart function
-# @st.cache
-# def get_line_chart_data():
-#     print('get_line_chart_data called')
-#     return pd.DataFrame(
-#             np.random.randn(20, 3),
-#             columns=['a', 'b', 'c']
-#         )
-# ###
 
 today = date.today()
 today = str(today)
@@ -196,13 +155,6 @@ col1, col2 = st.beta_columns([4,1])
 
 
 
-
-
-
-
-
-
-
 with col1:
     # st.line_chart(df_half)
 
@@ -215,23 +167,6 @@ with col2:
 image = Image.open('forecast_data/forecast.png')
 
 st.image(image, use_column_width=True)
-
-### Table 2, price prediction
-# st.markdown("Table 2 - 5th of December, Electricity Prices")
-# @st.cache
-# def get_dataframe_data():
-#     print('get_dataframe_data called')
-#     return pd.DataFrame(
-#             np.random.randn(24, 1),
-#             columns=('col %d' % i for i in range(1))
-#         )
-
-# df1 = get_dataframe_data()
-
-# st.dataframe(df1.head().style.highlight_max(axis=0))
-###
-
-
 
 
 
@@ -253,52 +188,5 @@ st.markdown("""Click the link below to download the data in csv format""")
 st.markdown(
     get_table_download_link(df), unsafe_allow_html=True
     )
-
-
-# st.markdown("""
-#     Click the [link](https://pricepred-g.herokuapp.com/) to check the price prediction on the web app
-#     """)
-# ###
-
-
-
-# st.markdown("Progress bar")
-
-# if st.checkbox('Show progress bar'):
-#     import time
-
-#     'Starting a long computation...'
-
-#     # Add a placeholder
-#     latest_iteration = st.empty()
-#     bar = st.progress(0)
-
-#     for i in range(100):
-#         # Update the progress bar with each iteration.
-#         latest_iteration.text(f'Iteration {i+1}')
-#         bar.progress(i + 1)
-#         time.sleep(0.1)
-
-#     '...and now we\'re done!'
-
-
-# test = joblib.load('test_testset.joblib')
-# model = joblib.load('test_model.joblib')
-# prediction = model.predict(test)
-# st.write(prediction)
-
-
-# if __name__ == "__main__":
-#     #df = read_data()
-#     main()
-
-
-
-
-
-
-
-
-
 
 
