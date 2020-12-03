@@ -97,7 +97,7 @@ st.markdown(
     """
 <style>
 .sidebar .sidebar-content {
-    background-image: linear-gradient(blue, blue);
+    background-image: linear-gradient(#001e6f, #001e6f);
     color: rgb(0,0,0);
 }
 </style>
@@ -214,7 +214,7 @@ with col2:
 
 image = Image.open('forecast_data/forecast.png')
 
-st.image(image, width=900, use_column_width=True)
+st.image(image, use_column_width=True)
 
 ### Table 2, price prediction
 # st.markdown("Table 2 - 5th of December, Electricity Prices")
