@@ -27,10 +27,6 @@ from datetime import date, timedelta
 import base64
 
 
-
-
-
-
 st.set_page_config(
     page_title="electricity price prediction",
     page_icon=":zap:",
@@ -40,9 +36,21 @@ st.set_page_config(
 
 ### New changes from Ismael
 
+st.markdown(
+    """
+<style>
+.sidebar{
+    background-color: rgb(0,0,255);
+}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+
 st.sidebar.markdown("""
     <style>
-        #title {color: white;
+        #title {color: black;
         font-size: 55px;
         text-align: right;}
     </style>
@@ -51,9 +59,10 @@ RAIDEN ENERGY <br>
 :zap::zap::zap::zap: </b>
     """
     , unsafe_allow_html=True)
+
 st.sidebar.markdown("""
      <style>
-        #subtitle {color: white;
+        #subtitle {color: black;
         font-size: 24px}
     </style>
      <b id="subtitle"> Powering up your life </b>
@@ -62,33 +71,8 @@ st.sidebar.markdown("""
 
 
 
-# st.sidebar.markdown("""
-#     <font size="96">
-#         <span style=“color:white>
-#           <b>RAIDEN ENERGY</b>
-#         </span>
-#     </font>
-#     """
-#     , unsafe_allow_html=True)
-
-
 raiden = Image.open('raiden.jpg')
 st.sidebar.image(raiden, use_column_width=True)
-# st.sidebar.markdown(f"""
-#     # RAIDEN ENERGY
-#     """)
-
-# font_size = st.sidebar.slider('Changer header size', 16, 72, 36)
-
-# SIDEBAR_CSS = f"""
-# <h1 style=“font-size:44px;
-# color:red>
-# """
-
-# ### Creating the sidebar
-
-# st.write(SIDEBAR_CSS, unsafe_allow_html=True)
-
 
 
 ### New changes from Ismael
@@ -97,8 +81,7 @@ st.markdown(
     """
 <style>
 .sidebar .sidebar-content {
-    background-image: linear-gradient(#001e6f, #001e6f);
-
+    background-image: rgb(0,0,255);
 }
 </style>
 """,
@@ -117,9 +100,6 @@ st.markdown("Map of Denmark showing bidding zones of the energy market")
 
 image = Image.open("DK1_edited.png")
 st.image(image, caption='map', use_column_width=True)
-
-
-
 
 
 df = pd.read_csv('forecast_data/forecast_data.csv')
