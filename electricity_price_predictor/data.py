@@ -64,9 +64,45 @@ def get_shifted_price():
 
     return price_df
 
+def get_shifted_price_test():
+    """Takes in dataframe and performs shift to compensate for daylight saving"""
+    today = date.today()  # today's date
+    start = datetime.combine(today, datetime.min.time())  # initialize to midnight
+    stop = start + timedelta(days=1)
+
+    old_price = get_price().loc[:'2020-12-02 23:00:00']
+    new_price = get_new_price(start, stop)
+    new_price.index.name = 'time'
+
+    df = pd.concat([old_price, new_price])
+    df.index = pd.to_datetime(df.index)
+
+    df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
+    df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
+    df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
+    df_4 = df.loc['2016-03-27 02:00:00':'2016-10-30 02:00:00']
+    df_5 = df.loc['2016-10-30 03:00:00':'2017-03-26 01:00:00']
+    df_6 = df.loc['2017-03-26 02:00:00':'2017-10-29 02:00:00']
+    df_7 = df.loc['2017-10-29 03:00:00':'2018-03-25 01:00:00']
+    df_8 = df.loc['2018-03-25 02:00:00':'2018-10-28 02:00:00']
+    df_9 = df.loc['2018-10-28 03:00:00':'2019-03-31 01:00:00']
+    df_10 = df.loc['2019-03-31 02:00:00':'2019-10-27 02:00:00']
+    df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
+    df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
+    df_13 = df.loc['2020-10-25 03:00:00':]
+    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
+    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
+    price_df = df_1
+    for data in no_shift[1:]:
+        price_df = pd.concat([price_df, data])
+    for data in df_shift:
+        data = data.shift(periods=-1).dropna()
+        price_df = pd.concat([price_df, data])
+    price_df = price_df.sort_index()
+    return price_df
+
 def get_weather(path='../raw_data/weather_2015_2020.csv'):
     df = pd.read_csv(path)
-
     df['dt'] = pd.to_datetime(df.dt)
 
     # drop unnecessary columns
@@ -556,7 +592,7 @@ def get_new_price(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
     #conv to local
     time_index = time_index.tz_convert('Europe/Copenhagen')
     # format extra strings at the end
-    time_index = pd.Series(time_index).apply(lambda x: str(x)[:16])
+    time_index = pd.Series(time_index).apply(lambda x: str(x)[:19])
 
     price_df = pd.DataFrame(price).set_index(time_index)
     price_df = price_df.rename(columns={'price.amount':'price'})
