@@ -115,10 +115,10 @@ st.markdown("Table 1 - DK1 " + today_2 + " - Hourly Electricity Prices")
 col1, col2 = st.beta_columns([4,1])
 
 with col1:
-    st.area_chart(df.loc[:24, 'price'])
+    st.area_chart(df.loc[:23, 'price'])
 
 with col2:
-    st.write(df.loc[:24, 'price'], use_column_width=True)
+    st.write(df.loc[:23, 'price'], use_column_width=True)
 
 ###
 
