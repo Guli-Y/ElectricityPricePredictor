@@ -31,52 +31,36 @@ def get_price(path='../raw_data/price/'):
     df['price'] = df.price.astype('float')
     df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
     df.drop(columns=['time'], inplace=True)
+
+    df.to_csv('../raw_data/updated_price')
     return df
 
-def get_shifted_price():
-    """Takes in dataframe and performs shift to compensate for daylight saving"""
-    df = get_price()
-    df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
-    df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
-    df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
-    df_4 = df.loc['2016-03-27 02:00:00':'2016-10-30 02:00:00']
-    df_5 = df.loc['2016-10-30 03:00:00':'2017-03-26 01:00:00']
-    df_6 = df.loc['2017-03-26 02:00:00':'2017-10-29 02:00:00']
-    df_7 = df.loc['2017-10-29 03:00:00':'2018-03-25 01:00:00']
-    df_8 = df.loc['2018-03-25 02:00:00':'2018-10-28 02:00:00']
-    df_9 = df.loc['2018-10-28 03:00:00':'2019-03-31 01:00:00']
-    df_10 = df.loc['2019-03-31 02:00:00':'2019-10-27 02:00:00']
-    df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
-    df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
-    df_13 = df.loc['2020-10-25 03:00:00':]
-
-    df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
-    no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
-
-    price_df = df_1
-    for data in no_shift[1:]:
-        price_df = pd.concat([price_df, data])
-    for data in df_shift:
-        data = data.shift(periods=-1).dropna()
-        price_df = pd.concat([price_df, data])
-
-    price_df = price_df.sort_index()
-
-    return price_df
-
-def get_shifted_price_test():
-    """Takes in dataframe and performs shift to compensate for daylight saving"""
+def get_updated_price():
     today = date.today()  # today's date
     start = datetime.combine(today, datetime.min.time())  # initialize to midnight
     stop = start + timedelta(days=1)
 
-    old_price = get_price().loc[:'2020-12-02 23:00:00']
+    old_price = get_price()
     new_price = get_new_price(start, stop)
     new_price.index.name = 'time'
+    old_price.index = pd.to_datetime(old_price.index)
+    new_price.index = pd.to_datetime(new_price.index)
 
-    df = pd.concat([old_price, new_price])
-    df.index = pd.to_datetime(df.index)
+    if new_price.index[-24:].to_list() == old_price.index[-24:].to_list():
+        df = old_price
+    else:
+        df = pd.concat([old_price, new_price])
+        df.index = pd.to_datetime(df.index)#
 
+    df = df.sort_index()
+
+    df.to_csv('../raw_data/updated_price.csv')
+
+    return df
+
+def get_shifted_price():
+    """Takes in dataframe and performs shift to compensate for daylight saving"""
+    df = get_updated_price()
     df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
     df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
     df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
@@ -90,16 +74,21 @@ def get_shifted_price_test():
     df_11 = df.loc['2019-10-27 03:00:00':'2020-03-29 01:00:00']
     df_12 = df.loc['2020-03-29 02:00:00':'2020-10-25 02:00:00']
     df_13 = df.loc['2020-10-25 03:00:00':]
+
     df_shift = [df_2, df_4, df_6, df_8, df_10, df_12]
     no_shift = [df_1, df_3, df_5, df_7, df_9, df_11, df_13]
+
     price_df = df_1
     for data in no_shift[1:]:
         price_df = pd.concat([price_df, data])
     for data in df_shift:
         data = data.shift(periods=-1).dropna()
         price_df = pd.concat([price_df, data])
+
     price_df = price_df.sort_index()
+
     return price_df
+
 
 def get_weather(path='../raw_data/weather_2015_2020.csv'):
     df = pd.read_csv(path)
