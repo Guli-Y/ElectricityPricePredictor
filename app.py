@@ -36,16 +36,6 @@ st.set_page_config(
 
 ### New changes from Ismael
 
-# st.markdown(
-#     """
-# <style>
-# .sidebar{
-#     background-color: rgb(0,0,255);
-# }
-# </style>
-# """,
-#     unsafe_allow_html=True,
-# )
 
 
 st.markdown(
@@ -74,6 +64,7 @@ RAIDEN ENERGY <br>
     """
     , unsafe_allow_html=True)
 
+
 st.sidebar.markdown("""
      <style>
         #subtitle {color: black;
@@ -91,16 +82,6 @@ st.sidebar.image(raiden, use_column_width=True)
 
 ### New changes from Ismael
 
-st.markdown(
-    """
-<style>
-.sidebar .sidebar-content {
-    background-image: rgb(0,0,255);
-}
-</style>
-""",
-    unsafe_allow_html=True,
-)
 
 
 
