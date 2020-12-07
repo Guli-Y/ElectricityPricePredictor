@@ -9,6 +9,35 @@ import json
 import xmltodict
 from geopy.geocoders import Nominatim
 
+#################### get csv files ############################################
+
+def file_names(path='../'):
+    csv_files = []
+    for root, direc, files in os.walk(path):
+        if 'raw_data\\' in root:
+            csv_files.append(files)
+    return csv_files
+
+################### get price data #############################################
+
+def get_price(path='../raw_data/price/'):
+    price_files = file_names()[2]
+    df = pd.read_csv(path+price_files[0])
+    for file in price_files[1:]:
+        df_2 = pd.read_csv(path+file)
+        df = pd.concat([df, df_2])
+    df = df.reset_index(drop=True)
+    df.columns = ['time', 'price']
+    df['time'] = df.time.str[:16]
+    df = df[df.price!='-'] # filtering the timestamps till 24.11.2020
+    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
+    df['price'] = df.price.astype('float')
+    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
+    df.drop(columns=['time'], inplace=True)
+
+    df.to_csv('../raw_data/updated_price.csv')
+    return df
+
 def get_price_api(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
     """Returns dataframe with day-ahead electricity prices for DK1 within specified date range.
        API calls to 'https://transparency.entsoe.eu/'
@@ -115,6 +144,7 @@ def get_shifted_price():
 
     return price_df
 
+################### get weather data ###########################################
 
 def get_weather(path='../raw_data/weather_2015_2020.csv'):
     df = pd.read_csv(path)
@@ -366,6 +396,8 @@ def get_updated_weather():
     df.to_csv('../raw_data/updated_data.csv')
     return df
 
+###################   get holidays   ###########################################
+
 def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     """
     Takes in a start date and a country.
@@ -397,56 +429,7 @@ def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     holidays_data.loc[(holidays_data.index.dayofweek==5) | (holidays_data.index.dayofweek==6), 'weekend'] = 1
     return holidays_data
 
-def get_data(hour=11):
-    '''it will return past and furture datas in two different dataframes,
-    which can be used for furture forecasting'''
-    df_price = get_shifted_price()
-    df_price_11 = df_price[df_price.index.hour==hour]
-    df_weather = get_updated_weather()
-    df_weather_11 = df_weather[df_weather.index.hour==hour]
-    # change the index of df_holidays so that it can be joined with others
-    df_holidays = get_holidays().drop(columns=['holiday_name'])
-    df_holidays['time']=f'{str(hour)}:00'
-    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
-    df_holidays.index = df_holidays.index + df_holidays.time
-    df_holidays_11 = df_holidays.drop('time', axis=1)
-    # joining the dataframes
-    dfs = dict(weather=df_weather_11, holidays=df_holidays_11)
-    # merge all features
-    df_all = df_price_11
-    for df in dfs.values():
-        df_all = df_all.join(df, how='outer')
-    #past = df_all[~df_all.price.isnull()]
-    #future = df_all[df_all.price.isnull()].drop('price', axis=1)
-    return df_all
-
-################## functions for validation and exploration #####################
-
-def file_names(path='../'):
-    csv_files = []
-    for root, direc, files in os.walk(path):
-        if 'raw_data\\' in root:
-            csv_files.append(files)
-    return csv_files
-
-
-def get_price(path='../raw_data/price/'):
-    price_files = file_names()[2]
-    df = pd.read_csv(path+price_files[0])
-    for file in price_files[1:]:
-        df_2 = pd.read_csv(path+file)
-        df = pd.concat([df, df_2])
-    df = df.reset_index(drop=True)
-    df.columns = ['time', 'price']
-    df['time'] = df.time.str[:16]
-    df = df[df.price!='-'] # filtering the timestamps till 24.11.2020
-    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
-    df['price'] = df.price.astype('float')
-    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
-    df.drop(columns=['time'], inplace=True)
-
-    df.to_csv('../raw_data/updated_price.csv')
-    return df
+################### get other features #########################################
 
 def get_load(path='../raw_data/load/'):
     load_files = file_names()[1]
@@ -524,7 +507,6 @@ def get_coal_price(path='../raw_data/coal_price.xls'):
 
     return df
 
-
 def get_wind_prod(path="../raw_data/productionconsumptionsettlement.csv"):
     """Returns a feature-engineered dataframe including:
     1. Wind production
@@ -577,6 +559,8 @@ def get_wind_prod(path="../raw_data/productionconsumptionsettlement.csv"):
 
     return final_df
 
+################### get all the features and price #############################
+
 def get_all(hour=11):
     '''take a hour=n and returns a df,
     df contains the values for price and all the other features for the specific
@@ -610,4 +594,29 @@ def get_all(hour=11):
         df_all = df_all.join(df, how='outer')
     # wind production data is only available till 2020-11-18, so cut the date
     #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
+    return df_all
+
+################### get data for forecasting ###################################
+
+def get_data(hour=11):
+    '''it will return past and furture datas in two different dataframes,
+    which can be used for furture forecasting'''
+    df_price = get_shifted_price()
+    df_price_11 = df_price[df_price.index.hour==hour]
+    df_weather = get_updated_weather()
+    df_weather_11 = df_weather[df_weather.index.hour==hour]
+    # change the index of df_holidays so that it can be joined with others
+    df_holidays = get_holidays().drop(columns=['holiday_name'])
+    df_holidays['time']=f'{str(hour)}:00'
+    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
+    df_holidays.index = df_holidays.index + df_holidays.time
+    df_holidays_11 = df_holidays.drop('time', axis=1)
+    # joining the dataframes
+    dfs = dict(weather=df_weather_11, holidays=df_holidays_11)
+    # merge all features
+    df_all = df_price_11
+    for df in dfs.values():
+        df_all = df_all.join(df, how='outer')
+    #past = df_all[~df_all.price.isnull()]
+    #future = df_all[df_all.price.isnull()].drop('price', axis=1)
     return df_all

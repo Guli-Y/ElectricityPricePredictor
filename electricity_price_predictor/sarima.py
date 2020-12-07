@@ -10,22 +10,23 @@ from sklearn.preprocessing import StandardScaler
 
 
 def get_daily(hour=11):
-    '''it returns a subset of price data based on hour'''
+    '''it gets hourly price data by calling get_shifted_price from data.py and
+    returns a daily {hour} o'clock price dataframe'''
     df = get_shifted_price()
     df = df[df.index.hour==hour]
     return df
 
 def get_mape(y_true, y_pred):
-    ''' y_true, y_pred need to list or pd.series
-    it returns mean absolute percentage error'''
+    '''it takes two lists or pd.series (y_true, y_pred) and returns
+    mean absolute percentage error'''
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
     mape = np.round(mape,2)
     return f'{mape}%'
 
 def get_mase(y_true, y_pred, train_y):
-    ''' y_true, y_pred, train_y need to list or pd.series
-    it returns mean absolute scaled error'''
+    '''it takes two lists or pd.series (y_true, y_pred) and returns
+    mean absolute scaled error'''
     y_true, y_pred, train_y = np.array(y_true), np.array(y_pred), np.array(train_y)
     upper = np.mean(np.abs(y_pred-y_true))
     train_t = train_y[:-1]
@@ -49,14 +50,16 @@ def plot_forecast(forecast, train, test, lower_int, upper_int, mape=None, mase=N
     plt.title(title)
     plt.legend(loc='upper left', fontsize=8)
 
-def train_sarima(data=False, hour=11,
+######### feature exploration and walk forward validation of sarimax ###########
+
+def train_sarimax(data=False, hour=11,
                  split_date='2019-10-22 11:00:00',
                  n=30, exog=False):
-    '''hour: hour of a day, range(0, 23),
+    '''hour: hour of a day (0, 23),
     split_date: train, test splitted on this date,
     n: number of days that will be forecasted,
-    exog: in case of sarimax, takes (list of exog features, order, seasonal_order)
-    returns forecast, upper_intervals, lower_intervals, mape, mase, test, train'''
+    exog: takes ([exog features], order, seasonal_order)
+    returns forecast, upper_intervals, lower_intervals, mape, mase, test_set, train_set'''
 
     if isinstance(data, bool):
         if isinstance(exog, bool):
