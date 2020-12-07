@@ -1,22 +1,3 @@
-# from flask import Flask, escape, request
-# import joblib
-
-# app = Flask(__name__)
-
-# @app.route('/')
-# def hello():
-#     # get param from http://127.0.0.1:5000/?name=value
-#     name = request.args.get("name", "World")
-#     return f'Hello, {escape(name)}!'
-
-# @app.route('/predict_price')
-# def day_head():
-#     test = joblib.load('../test_testset.joblib')
-
-#     model = joblib.load('../test_model.joblib')
-#     pred = model.predict(test)[0]
-
-#     return {'test_values': test, 'day-ahead prediction': pred}
 
 
 import streamlit as st
@@ -34,9 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded") # collapsed
 
 
-### New changes from Ismael
-
-
+### sidebar
 
 st.markdown(
     """
@@ -49,8 +28,6 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
-
-
 
 st.sidebar.markdown("""
     <style>
@@ -74,44 +51,28 @@ st.sidebar.markdown("""
     """
     , unsafe_allow_html=True)
 
-
-
 raiden = Image.open('raiden.jpg')
 st.sidebar.image(raiden, use_column_width=True)
 
 
-### New changes from Ismael
-
-
-
+### title
 
 st.title("ELECTRA PROJECT")
-# st.write(TITLE_CSS, unsafe_allow_html=True)
 st.markdown("## Electricity Price Predictor for Denmark ")
 st.markdown('<style>h1{color: black}</style>', unsafe_allow_html=True)
-###
-
 st.markdown("Map of Denmark showing bidding zones of the energy market")
-
 image = Image.open("DK1_edited.png")
 st.image(image, caption='map', use_column_width=True)
-
 
 df = pd.read_csv('forecast_data/forecast_data.csv')
 
 
 
-today = date.today()
-today = str(today)
-today_2 = date.today() + timedelta(days=2)
-today_2 = str(today_2)
-today_3 = date.today() + timedelta(days=3)
-today_3 = str(today_3)
-
-
+twoday_ahead = date.today() + timedelta(days=2)
+twoday_ahead = str(today_2)
 
 #### Ploting the table and chart side by side
-st.markdown("Table 1 - DK1 " + today_2 + " - Hourly Electricity Prices")
+st.markdown("Table 1 - DK1 " + twoday_ahead + " - Hourly Electricity Prices")
 col1, col2 = st.beta_columns([4,1])
 
 with col1:
@@ -120,32 +81,10 @@ with col1:
 with col2:
     st.write(df.loc[:23, 'price'], use_column_width=True)
 
-###
-
-
-# df_half = df.loc[24:, 'price']
-# df_half = df_half.reset_index(drop=True)
-
-# ###
-# st.markdown("Table 2 - DK2 " + today_3 + " - Hourly Electricity Prices")
-# col1, col2 = st.beta_columns([4,1])
-
-
-
-# with col1:
-#     # st.line_chart(df_half)
-
-#     st.area_chart(df_half, use_container_width=True)
-
-# with col2:
-#     st.write(df_half, use_column_width=True)
-
 
 image = Image.open('forecast_data/forecast.png')
 
 st.image(image, use_column_width=True)
-
-
 
 ### Creating a link to download the data or plot
 
@@ -165,5 +104,3 @@ st.markdown("""Click the link below to download the data in csv format""")
 st.markdown(
     get_table_download_link(df), unsafe_allow_html=True
     )
-
-
