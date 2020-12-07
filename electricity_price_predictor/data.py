@@ -9,50 +9,76 @@ import json
 import xmltodict
 from geopy.geocoders import Nominatim
 
-def file_names(path='../'):
-    csv_files = []
-    for root, direc, files in os.walk(path):
-        if 'raw_data\\' in root:
-            csv_files.append(files)
-    return csv_files
+def get_price_api(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
+    """Returns dataframe with day-ahead electricity prices for DK1 within specified date range.
+       API calls to 'https://transparency.entsoe.eu/'
+       start and stop should be datetime objects
+       e.g to get current day-ahead price for DK1 zone.
+       start = datetime.today()
+       stop = start + timedelta(days=1)
+    """
+    #CONVERT TO UTC
+    start_utc = start.astimezone(timezone.utc)
+    stop_utc = stop.astimezone(timezone.utc)
+    #convert to string
+    period_start = datetime.strftime(start_utc, "%Y%m%d%H%M")
+    period_stop = datetime.strftime(stop_utc, "%Y%m%d%H%M")
+    #get response
+    url = "https://transparency.entsoe.eu/api?"
+    params = dict(
+        securityToken= key,
+        documentType= "A44",
+        processType= "A01",
+        in_Domain= "10YDK-1--------W",
+        out_Domain= "10YDK-1--------W",
+        periodStart= period_start,
+        periodEnd= period_stop
+    )
+    response = requests.get(url, params) # XML forma
 
+    # converted to json
+    result = json.loads(
+        json.dumps(
+            xmltodict.parse(response.text)
+        ))['Publication_MarketDocument']
 
-def get_price(path='../raw_data/price/'):
-    price_files = file_names()[2]
-    df = pd.read_csv(path+price_files[0])
-    for file in price_files[1:]:
-        df_2 = pd.read_csv(path+file)
-        df = pd.concat([df, df_2])
-    df = df.reset_index(drop=True)
-    df.columns = ['time', 'price']
-    df['time'] = df.time.str[:16]
-    df = df[df.price!='-'] # filtering the timestamps till 24.11.2020
-    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
-    df['price'] = df.price.astype('float')
-    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
-    df.drop(columns=['time'], inplace=True)
+    # get prices
+    price = result['TimeSeries']['Period']['Point']
+    price = pd.DataFrame(price)['price.amount']
 
-    df.to_csv('../raw_data/updated_price')
-    return df
+    #Get time index
+    begin = result['TimeSeries']['Period']['timeInterval']['start']
+    end = result['TimeSeries']['Period']['timeInterval']['end']
+
+    time_index = pd.date_range(begin, end, freq="H", closed='left')
+
+    #conv to local
+    time_index = time_index.tz_convert('Europe/Copenhagen')
+    # format extra strings at the end
+    time_index = pd.Series(time_index).apply(lambda x: str(x)[:19])
+
+    price_df = pd.DataFrame(price).set_index(time_index)
+    price_df = price_df.rename(columns={'price.amount':'price'})
+    return price_df
 
 def get_updated_price():
-    today = date.today()  # today's date
-    start = datetime.combine(today, datetime.min.time())  # initialize to midnight
+    # get past price
+    old_price = pd.read_csv('../raw_data/updated_price.csv', parse_dates=True, index_col='time')
+
+    # get day ahead price
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+    start = datetime.combine(tomorrow, datetime.min.time())  # initialize to midnight
     stop = start + timedelta(days=1)
-
-    old_price = get_price()
-    new_price = get_new_price(start, stop)
+    new_price = get_price_api(start, stop)
     new_price.index.name = 'time'
-    old_price.index = pd.to_datetime(old_price.index)
-    new_price.index = pd.to_datetime(new_price.index)
+    new_price.set_index(pd.DatetimeIndex(new_price.index), inplace=True)
 
-    if new_price.index[-24:].to_list() == old_price.index[-24:].to_list():
-        df = old_price
-    else:
+    # update the price csv
+    if new_price.index[0] > old_price.index[-1]:
         df = pd.concat([old_price, new_price])
-        df.index = pd.to_datetime(df.index)#
-
-    df = df.sort_index()
+    else:
+        df = old_price
 
     df.to_csv('../raw_data/updated_price.csv')
 
@@ -371,6 +397,57 @@ def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     holidays_data.loc[(holidays_data.index.dayofweek==5) | (holidays_data.index.dayofweek==6), 'weekend'] = 1
     return holidays_data
 
+def get_data(hour=11):
+    '''it will return past and furture datas in two different dataframes,
+    which can be used for furture forecasting'''
+    df_price = get_shifted_price()
+    df_price_11 = df_price[df_price.index.hour==hour]
+    df_weather = get_updated_weather()
+    df_weather_11 = df_weather[df_weather.index.hour==hour]
+    # change the index of df_holidays so that it can be joined with others
+    df_holidays = get_holidays().drop(columns=['holiday_name'])
+    df_holidays['time']=f'{str(hour)}:00'
+    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
+    df_holidays.index = df_holidays.index + df_holidays.time
+    df_holidays_11 = df_holidays.drop('time', axis=1)
+    # joining the dataframes
+    dfs = dict(weather=df_weather_11, holidays=df_holidays_11)
+    # merge all features
+    df_all = df_price_11
+    for df in dfs.values():
+        df_all = df_all.join(df, how='outer')
+    #past = df_all[~df_all.price.isnull()]
+    #future = df_all[df_all.price.isnull()].drop('price', axis=1)
+    return df_all
+
+################## functions for validation and exploration #####################
+
+def file_names(path='../'):
+    csv_files = []
+    for root, direc, files in os.walk(path):
+        if 'raw_data\\' in root:
+            csv_files.append(files)
+    return csv_files
+
+
+def get_price(path='../raw_data/price/'):
+    price_files = file_names()[2]
+    df = pd.read_csv(path+price_files[0])
+    for file in price_files[1:]:
+        df_2 = pd.read_csv(path+file)
+        df = pd.concat([df, df_2])
+    df = df.reset_index(drop=True)
+    df.columns = ['time', 'price']
+    df['time'] = df.time.str[:16]
+    df = df[df.price!='-'] # filtering the timestamps till 24.11.2020
+    df['time'] = pd.to_datetime(df['time'], format='%d.%m.%Y %H:%M')
+    df['price'] = df.price.astype('float')
+    df.set_index(pd.DatetimeIndex(df['time']), inplace=True)
+    df.drop(columns=['time'], inplace=True)
+
+    df.to_csv('../raw_data/updated_price.csv')
+    return df
+
 def get_load(path='../raw_data/load/'):
     load_files = file_names()[1]
     df = pd.read_csv(path+load_files[0])
@@ -534,84 +611,3 @@ def get_all(hour=11):
     # wind production data is only available till 2020-11-18, so cut the date
     #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
     return df_all
-
-def get_new_price(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
-    """Returns dataframe with day-ahead electricity prices for DK1 within specified date range.
-       API calls to 'https://transparency.entsoe.eu/'
-       start and stop should be datetime objects
-       e.g to get current day-ahead price for DK1 zone.
-       start = datetime.today()
-       stop = start + timedelta(days=1)
-    """
-    #CONVERT TO UTC
-    start_utc = start.astimezone(timezone.utc)
-    stop_utc = stop.astimezone(timezone.utc)
-    #convert to string
-    period_start = datetime.strftime(start_utc, "%Y%m%d%H%M")
-    period_stop = datetime.strftime(stop_utc, "%Y%m%d%H%M")
-    #get response
-    url = "https://transparency.entsoe.eu/api?"
-    params = dict(
-        securityToken= key,
-        documentType= "A44",
-        processType= "A01",
-        in_Domain= "10YDK-1--------W",
-        out_Domain= "10YDK-1--------W",
-        periodStart= period_start,
-        periodEnd= period_stop
-    )
-    response = requests.get(url, params) # XML forma
-
-    # converted to json
-    result = json.loads(
-        json.dumps(
-            xmltodict.parse(response.text)
-        ))['Publication_MarketDocument']
-
-    # get prices
-    price = result['TimeSeries']['Period']['Point']
-    price = pd.DataFrame(price)['price.amount']
-
-    #Get time index
-    begin = result['TimeSeries']['Period']['timeInterval']['start']
-    end = result['TimeSeries']['Period']['timeInterval']['end']
-
-    time_index = pd.date_range(begin, end, freq="H", closed='left')
-
-    #conv to local
-    time_index = time_index.tz_convert('Europe/Copenhagen')
-    # format extra strings at the end
-    time_index = pd.Series(time_index).apply(lambda x: str(x)[:19])
-
-    price_df = pd.DataFrame(price).set_index(time_index)
-    price_df = price_df.rename(columns={'price.amount':'price'})
-
-
-    return price_df
-
-
-def get_data(hour=11):
-    '''it will return past and furture datas in two different dataframes,
-    which can be used for furture forecasting'''
-    df_price = get_shifted_price()
-    df_price_11 = df_price[df_price.index.hour==hour]
-    df_weather = get_updated_weather()
-    df_weather_11 = df_weather[df_weather.index.hour==hour]
-    # change the index of df_holidays so that it can be joined with others
-    df_holidays = get_holidays().drop(columns=['holiday_name'])
-    df_holidays['time']=f'{str(hour)}:00'
-    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
-    df_holidays.index = df_holidays.index + df_holidays.time
-    df_holidays_11 = df_holidays.drop('time', axis=1)
-    # joining the dataframes
-    dfs = dict(weather=df_weather_11, holidays=df_holidays_11)
-    # merge all features
-    df_all = df_price_11
-    for df in dfs.values():
-        df_all = df_all.join(df, how='outer')
-    # split past and furture
-    past = df_all[~df_all.price.isnull()]
-    future = df_all[df_all.price.isnull()].drop('price', axis=1)
-    return past, future
-
-
