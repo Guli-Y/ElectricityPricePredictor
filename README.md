@@ -1,13 +1,38 @@
-# Data analysis
-- Document here the project: electricity_price_predictor
-- Description: Project Description
-- Data Source:
-- Type of analysis:
--
+# Project aim: Create a model that can forecast electricity prices for DK with minimum errors as possiple
+  This project was the final project of my team at Le Wagon Data Science Bootcamp. The team members are the contributers of this repository.
+# The detailed description and evaluation of each model please refere to the notebook of corresponding model in notebooks directory
+# If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing) and this [video]()
 
+# Data source
+
+**day-ahead electricity price**
+
+[data from ENTSOE](https://transparency.entsoe.eu/load-domain/r2/totalLoadR2/show?name=&defaultValue=true&viewType=TABLE&areaType=BZN&atch=false&dateTime.dateTime=06.11.2020+00:00|CET|DAY&biddingZone.values=CTY|10Y1001A1001A83F!BZN|10Y1001A1001A82H&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2))
+
+**historical weather of Denmark**
+purchased from openweather
+
+**future weather of Denmark**
+requested from openweather API
+
+# Feature selection
+
+features integrated into the sarimax:
+1. wind_speed
+2. holidays and the holiday is weekend
+3. temperature
+4. humidity
+
+features explored but don't contribute to forecasting accuracy:
+1. clouds
+2. load
+3. total production
+4. production by wind
+5. wind production / total production
 Please document the project the better you can.
 
-# Startup the project
+# Content of Repository
+
 
 The initial setup.
 
@@ -63,9 +88,3 @@ Functionnal test with a script:
   $ cd /tmp
   $ electricity_price_predictor-run
 ```
-
-# Continus integration
-## Github
-Every push of `master` branch will execute `.github/workflows/pythonpackages.yml` docker jobs.
-## Gitlab
-Every push of `master` branch will execute `.gitlab-ci.yml` docker jobs.
