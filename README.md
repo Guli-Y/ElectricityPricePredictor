@@ -1,8 +1,9 @@
-# Project aim:
-**Create a model that can forecast electricity prices for DK with minimum errors as possiple**
+# Project aim: **Create a model that can forecast electricity prices for DK with minimum errors as possiple**
 
 **This project was the final project of my team at Le Wagon Data Science Bootcamp. The team members are the contributers of this repository.**
+
 **The detailed description and evaluation of each model please refere to the notebook of corresponding model in notebooks directory**
+
 **If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing) and this [video]()**
 
 # Data source
@@ -12,9 +13,11 @@
 downloaded and API requested from [ENTSOE](https://transparency.entsoe.eu/load-domain/r2/totalLoadR2/show?name=&defaultValue=true&viewType=TABLE&areaType=BZN&atch=false&dateTime.dateTime=06.11.2020+00:00|CET|DAY&biddingZone.values=CTY|10Y1001A1001A83F!BZN|10Y1001A1001A82H&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2))
 
 **historical weather of Denmark**
+
 purchased from [openweather](https://openweathermap.org/)
 
 **future weather of Denmark**
+
 requested from [openweather API](https://openweathermap.org/api)
 
 # Feature selection
