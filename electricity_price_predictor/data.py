@@ -12,6 +12,7 @@ from geopy.geocoders import Nominatim
 #################### get csv files ############################################
 
 def file_names(path='../'):
+    '''it gets the csv file names from raw_data directory'''
     csv_files = []
     for root, direc, files in os.walk(path):
         if 'raw_data\\' in root:
@@ -21,6 +22,8 @@ def file_names(path='../'):
 ################### get price data #############################################
 
 def get_price(path='../raw_data/price/'):
+    '''it merges all the electricity price csv files and return one df with
+    hourly electricity price from 01-01-2015 till 24-11-2020 '''
     price_files = file_names()[2]
     df = pd.read_csv(path+price_files[0])
     for file in price_files[1:]:
@@ -90,25 +93,28 @@ def get_dayahead_price(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6")
     return price_df
 
 def get_updated_price():
-    ''' returns ddf with hourly electricity prices up to tomorrow midnight'''
+    ''' returns df with hourly electricity prices up to tomorrow midnight'''
     # get past price
-    df = pd.read_csv('../raw_data/updated_price.csv', parse_dates=True, index_col='time')
+    df = pd.read_csv('../data/updated_price.csv', parse_dates=True, index_col='time')
 
     dayahead = date.today() + timedelta(days=1)
-    while df.index[-1].date() < dayahead:
+    try: # after 13:00 day-ahead price is available
+        while df.index[-1].date() < dayahead:
 
-        # get the rest including day-ahead by calling api
-        start = df.index[-1].date() + timedelta(days=1)
-        start = datetime.combine(start, datetime.min.time())  # initialize to midnight
-        stop = start + timedelta(days=1)
+            # get the rest including day-ahead by calling api
+            start = df.index[-1].date() + timedelta(days=1)
+            start = datetime.combine(start, datetime.min.time())  # initialize to midnight
+            stop = start + timedelta(days=1)
 
-        new_price = get_dayahead_price(start, stop)
-        new_price.index.name = 'time'
-        new_price.set_index(pd.DatetimeIndex(new_price.index), inplace=True)
+            new_price = get_dayahead_price(start, stop)
+            new_price.index.name = 'time'
+            new_price.set_index(pd.DatetimeIndex(new_price.index), inplace=True)
 
-        # update the price csv
-        df = pd.concat([df, new_price])
-        df.to_csv('../raw_data/updated_price.csv')
+            # update the price csv
+            df = pd.concat([df, new_price])
+            df.to_csv('../data/updated_price.csv')
+    except: # before 13:00 day-ahead price is not availeble
+        pass
 
     return df
 
@@ -213,7 +219,7 @@ def get_weather_forecast(city):
 
     return result
 
-def get_past_weather():
+def get_past_weather(date_):
     """Get weather for the past calendar day in DK1 region"""
     # cities in DK1 region
     cities = ['Aalborg', 'Aarhus', 'Esbjerg', 'Herning',
@@ -233,8 +239,7 @@ def get_past_weather():
         'Horsens': 83_598}
 
     # time
-    today = date.today()
-    t_unix = int(time.mktime(today.timetuple()))
+    t_unix = int(time.mktime(date_.timetuple()))
 
     # openweather api endpoints
     key = '7028ef7cb1384c020af39dc40e0e14b5'
@@ -331,24 +336,22 @@ def get_weather_48():
 
 def get_updated_weather():
     '''it gets historical weather data and merge it with weather forecast for next 48h,
-    and saves the updated data to updated_data.csv and returns the up to date weather data'''
+    and saves the updated data to updated_data.csv and returns the up to date weather data.
+    This function needs to be called at least once in every 48 hours to keep weather data complete'''
 
     # collect historical weather data
-    df_1 = pd.read_csv('../raw_data/updated_weather.csv', parse_dates=True, index_col='dt')
-    df_2 = get_past_weather()
-    df_1 = df_1[df_1.index < df_2.index[0]]
-    df = pd.concat([df_1, df_2])
+    df_hist = pd.read_csv('../raw_data/updated_weather.csv', parse_dates=True, index_col='dt')
 
     # get forecasted weather data
-    df_3 = get_weather_48()
+    df_forecast = get_weather_48()
 
-    # avoid missing values when concating historical and forecasted weather data
-    if (df.index[-1] + timedelta(hours=1)) == df_3.index[0] :
-        df = pd.concat([df_2, df_3])
-    else:
-        df = df
+    # concat forecast weather with past weather
+    df_hist = df_hist[df_hist.index < df_forecast.index[0]]
+    df = pd.concat([df_hist, df_forecast])
+
     # save the updated_data
     df.to_csv('../raw_data/updated_weather.csv')
+
     return df
 
 ###################   get holidays   ###########################################
@@ -363,7 +366,7 @@ def get_holidays(start='2015-01-01', country='DK', frequency='D'):
     Returns a dataframe
     """
     # get end date
-    end = str(date.today()+timedelta(7))
+    end = str(date.today()+timedelta(3))
     #generate the range of daily dates
     dates = pd.date_range(start=start, end=end, freq=frequency)
     #create the holiday object
@@ -514,7 +517,7 @@ def get_wind_prod(path="../raw_data/productionconsumptionsettlement.csv"):
 
     return final_df
 
-################### get all the features and price #############################
+################ get all the features and price for exploration ################
 
 def get_all(hour=11):
     '''take a hour=n and returns a df,
@@ -531,7 +534,7 @@ def get_all(hour=11):
     df_wind_11 = df_wind[df_wind.index.hour==hour]
     df_coal = get_coal_price()
     df_coal_11 = df_coal[df_coal.index.hour==hour]
-    # change the index of df_holidays so that it can be joined with others
+    # change the index of df_coal so that it can be joined with others
     df_coal['time']=f'{str(hour)}:00'
     df_coal.time = pd.to_timedelta(df_coal.time + ':00')
     df_coal.index = df_coal.index + df_coal.time
@@ -553,25 +556,23 @@ def get_all(hour=11):
 
 ################### get data for forecasting ###################################
 
-def get_data(hour=11):
-    '''it will return past and furture datas in two different dataframes,
-    which can be used for furture forecasting'''
+def get_data(hour=False):
+    '''it returns hourly data for price, weather and holidays.
+    When an integer (0, 24) is given to hour, it returns daily data.
+    It need to be called at least once every 48 hours'''
     df_price = get_shifted_price()
-    df_price_11 = df_price[df_price.index.hour==hour]
     df_weather = get_updated_weather()
-    df_weather_11 = df_weather[df_weather.index.hour==hour]
-    # change the index of df_holidays so that it can be joined with others
+    # change the daily holidays data to hourly data so that it can be joined with others
     df_holidays = get_holidays().drop(columns=['holiday_name'])
-    df_holidays['time']=f'{str(hour)}:00'
-    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
-    df_holidays.index = df_holidays.index + df_holidays.time
-    df_holidays_11 = df_holidays.drop('time', axis=1)
+    df_holidays = df_holidays.resample('H').pad()
     # joining the dataframes
-    dfs = dict(weather=df_weather_11, holidays=df_holidays_11)
+    dfs = dict(weather=df_weather, holidays=df_holidays)
     # merge all features
-    df_all = df_price_11
+    df_merged= df_price
     for df in dfs.values():
-        df_all = df_all.join(df, how='outer')
-    #past = df_all[~df_all.price.isnull()]
-    #future = df_all[df_all.price.isnull()].drop('price', axis=1)
-    return df_all
+        df_merged = df_merged.join(df, how='outer')
+    if not hour: # meaning if hour=False
+        pass
+    else:
+        df_merged = df_merged[df_merged.index.hour==hour]
+    return df_merged
