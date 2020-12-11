@@ -14,6 +14,6 @@ def test_get_shifted_price():
     df = pd.read_csv(file, parse_dates=True, index_col='time')
     today = date.today()
     assert df.index[-1] >= today
-    assert df.price.isnull().sum()[0] == 6
+    assert df.price.isnull().sum() == 6
     df_shifted = get_shifted_price(df)
-    assert df_shifted.price.isnull().sum()[0] == 0
+    assert df_shifted.price.isnull().sum() == 0
