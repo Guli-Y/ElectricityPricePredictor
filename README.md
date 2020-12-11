@@ -1,12 +1,12 @@
 # Project aim:    **Forecast Electricity Price for DK1**
 
-**This project was the final project of my team at Le Wagon Data Science Bootcamp. The team members are the contributers of this repository.**
+This project was the final project of my team at Le Wagon Data Science Bootcamp. The team members are the contributers of this repository.
 
-**For the detailed description and evaluation of each model, please refere to the notebook of corresponding model in notebooks directory**
+For the detailed description and evaluation of each model, please refere to the notebook of corresponding model in notebooks directory
 
-**If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing) and this [video]()**
+If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing) and this [video]()
 
-**If you are interested in our forecast results, checkout our heroku [webpage](https://pricepred-g.herokuapp.com/)
+If you are interested in our forecast results, checkout our heroku [webpage](https://pricepred-g.herokuapp.com/)
 
 
 # Data source
