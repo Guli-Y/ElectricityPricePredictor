@@ -73,7 +73,8 @@ def sarimax_forecast_24():
         pasts.append(past_i)
     # merge 24 hours
     print('############## Merging forecasts data ##############')
-    forecast_df, past_df = sarimax_forecast(hour=0)
+    df_0 = df[df.index.hour==0]
+    forecast_df, past_df = sarimax_forecast(df_0)
     for forecast, past in zip(forecasts, pasts):
         forecast_df = pd.concat([forecast_df, forecast])
         past_df = pd.concat([past_df, past])
