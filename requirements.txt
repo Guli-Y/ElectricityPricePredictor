@@ -14,7 +14,7 @@ geopy
 pmdarima
 numpy
 scikit-learn
-statsmodel
+statsmodels
 joblib
 holidays
 xlrd
