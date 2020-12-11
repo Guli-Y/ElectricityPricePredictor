@@ -118,9 +118,8 @@ def get_updated_price():
 
     return df
 
-def get_shifted_price():
+def get_shifted_price(df):
     """Takes in dataframe and performs shift to compensate for daylight saving"""
-    df = get_updated_price()
     df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
     df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
     df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
@@ -519,40 +518,32 @@ def get_wind_prod(path="../raw_data/productionconsumptionsettlement.csv"):
 
 ################ get all the features and price for exploration ################
 
-def get_all(hour=11):
-    '''take a hour=n and returns a df,
-    df contains the values for price and all the other features for the specific
-    hour (n) of the day '''
-    df_price = get_shifted_price()
-    df_price_11 = df_price[df_price.index.hour==hour]
+def get_all():
+    '''it returns a merged df that contains the hourly values for price, weather,
+    wind production, total production, coal price, and holidays'''
+    df = get_updated_price()
+    df_price = get_shifted_price(df)
     df_load = get_shifted_load()
-    df_load_11 = df_load[df_load.index.hour==hour]
     df_weather = get_weather()
-    df_weather_11 = df_weather[df_weather.index.hour==hour]
-    df_holidays = get_holidays().drop(columns=['holiday_name'])
     df_wind = get_wind_prod()
-    df_wind_11 = df_wind[df_wind.index.hour==hour]
-    df_coal = get_coal_price()
-    df_coal_11 = df_coal[df_coal.index.hour==hour]
     # change the index of df_coal so that it can be joined with others
-    df_coal['time']=f'{str(hour)}:00'
-    df_coal.time = pd.to_timedelta(df_coal.time + ':00')
-    df_coal.index = df_coal.index + df_coal.time
-    df_coal_11 = df_coal.drop('time', axis=1)
+    df_coal = get_coal_price()
+    df_coal = df_coal.resample('H').pad()
     # change the index of df_holidays so that it can be joined with others
-    df_holidays['time']=f'{str(hour)}:00'
-    df_holidays.time = pd.to_timedelta(df_holidays.time + ':00')
-    df_holidays.index = df_holidays.index + df_holidays.time
-    df_holidays_11 = df_holidays.drop('time', axis=1)
+    df_holidays = get_holidays().drop(columns=['holiday_name'])
+    df_holidays = df_holidays.resample('H').pad()
     # joining all the dataframes
-    dfs = dict(load=df_load_11, coal=df_coal_11, weather=df_weather_11, wind=df_wind_11, holidays=df_holidays_11)
+    dfs = dict(load=df_load, weather=df_weather, wind=df_wind, coal=df_coal, holidays=df_holidays)
     # merge all features
     df_all = df_price_11
     for df in dfs.values():
         df_all = df_all.join(df, how='outer')
-    # wind production data is only available till 2020-11-18, so cut the date
-    #df_all = df_all[df_all.index < '2020-11-19 00:00:00']
     return df_all
+
+def get_hourly_data(hour=11):
+    df = get_all()
+    df = df[df.index.hour==hour]
+    return df
 
 ################### get data for forecasting ###################################
 
@@ -560,7 +551,8 @@ def get_data(hour=False):
     '''it returns hourly data for price, weather and holidays.
     When an integer (0, 24) is given to hour, it returns daily data.
     It need to be called at least once every 48 hours'''
-    df_price = get_shifted_price()
+    df = get_updated_price()
+    df_price = get_shifted_price(df)
     df_weather = get_updated_weather()
     # change the daily holidays data to hourly data so that it can be joined with others
     df_holidays = get_holidays().drop(columns=['holiday_name'])
