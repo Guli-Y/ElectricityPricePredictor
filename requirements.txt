@@ -9,6 +9,12 @@ black
 yapf
 python-gitlab
 twine
+xlrd
+geopy
+pmdarima
+numpy
+scikit-learn
+statsmodel
 joblib
 holidays
 xlrd
@@ -17,4 +23,3 @@ matplotlib
 joblib
 geopy
 xmltodict
-
