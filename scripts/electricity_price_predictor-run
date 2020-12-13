@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Import from the standard library
-from os.path import split
-import argparse
-import pandas as pd
-
 # Import from electricity_price_predictor
-import electricity_price_predictor
-from electricity_price_predictor.lib import clean_data
-from electricity_price_predictor.data import get_all
+from electricity_price_predictor.sarimax import plot_sarimax_forecast_24
 
-if __name__ == '__main__':
-    get_all()
+plot_sarimax_forecast_24()
