@@ -23,3 +23,4 @@ matplotlib
 joblib
 geopy
 xmltodict
+termcolor
