@@ -3,12 +3,15 @@ from setuptools import setup
 
 with open('requirements.txt') as f:
     content = f.readlines()
-requirements = [x.strip() for x in content if 'git+' not in x]
+requirements = [x.strip() for x in content]
 
 
 setup(name='electricity_price_predictor',
       version="1.0",
-      description="Project Description",
+      description="It forecasts 2days-ahead electricity prices in DK1",
+      url = 'https://github.com/Guli-Y/ElectricityPricePredictor'
+      author = 'Guli-Y'
+      author_email = 'g.yimingjiang@gmail.com'
       packages=find_packages(),
       test_suite = 'tests',
       install_requires=requirements,
