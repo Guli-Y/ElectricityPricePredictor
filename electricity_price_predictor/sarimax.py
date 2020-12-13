@@ -3,16 +3,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from termcolor import colored
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 def plot_forecast(forecast, past):
     '''it will plot a forecast'''
     fig, ax = plt.subplots(figsize=(10,4), dpi=100)
-    ax.plot(past, label='past', color='black')
+    ax.plot(past, label='day-ahead', color='black')
     ax.plot(forecast.price, label='forecast', color='blue')
     ax.fill_between(forecast.index, forecast.lower, forecast.upper, label='confidence interval',
                     color='k', alpha=.15)
-    title = 'Electricity Price Forecast - next 48 hours (EUR/Mwh)'
+    title = 'Electricity Price Forecast - 2days-ahead (EUR/Mwh)'
     ax.set_title(title)
     ax.legend(loc='upper left', fontsize=8)
     ax.set_ylabel('price')
@@ -20,7 +21,7 @@ def plot_forecast(forecast, past):
     ax.format_xdata = mdates.DateFormatter('%d-%H-%m')
     fig.autofmt_xdate()
     # save the forecast plot for heroku webpage
-    print('############## saving forecast plot ##############')
+    print(colored('############## saving forecast plot ##############', 'red'))
     plt.savefig('../forecast_data/forecast.png')
 
 
@@ -66,13 +67,13 @@ def sarimax_forecast_24():
     pasts = []
     # loop over to get forecast for each hour
     for i in range(1, 24):
-        print(f"############## forecasting for {str(i)}:00 o'clock ##############")
+        print(colored(f"############## forecasting for {str(i)}:00 o'clock ##############", 'blue'))
         df_i = df[df.index.hour==i]
         forecast_i, past_i = sarimax_forecast(df_i)
         forecasts.append(forecast_i)
         pasts.append(past_i)
     # merge 24 hours
-    print('############## Merging forecasts data ##############')
+    print(colored('############## Merging forecasts data ##############', 'green'))
     df_0 = df[df.index.hour==0]
     forecast_df, past_df = sarimax_forecast(df_0)
     for forecast, past in zip(forecasts, pasts):
@@ -88,8 +89,8 @@ def plot_sarimax_forecast_24():
     plot the forecast results using plot_forecast function'''
     forecast, past = sarimax_forecast_24()
     # save the forecast results
-    print('############## saving forecast results ##############')
+    print(colored('############## saving forecast results ##############', 'red'))
     forecast.to_csv('../forecast_data/forecast_data.csv')
     # plot the forecast results
-    print('############## plotting forecast results ##############')
+    print(colored('############## plotting forecast results ##############', 'green'))
     plot_forecast(forecast, past)
