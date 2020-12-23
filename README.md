@@ -4,24 +4,24 @@ This project was the final project of my team at Le Wagon Data Science Bootcamp.
 
 For the detailed description and evaluation of each model, please refere to the notebook of corresponding model in notebooks directory
 
-If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing) and this [video]()
+If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing)
 
 If you are interested in our forecast results, checkout our heroku [webpage](https://pricepred-g.herokuapp.com/)
 
 
-# Data source
+# Data sources
 
 **Day-ahead electricity price**
 
 downloaded and API requested from [ENTSOE](https://transparency.entsoe.eu/load-domain/r2/totalLoadR2/show?name=&defaultValue=true&viewType=TABLE&areaType=BZN&atch=false&dateTime.dateTime=06.11.2020+00:00|CET|DAY&biddingZone.values=CTY|10Y1001A1001A83F!BZN|10Y1001A1001A82H&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2))
 
-The clean, hourly, up-to-date electricity price data can be obtained by calling get_shifted_price() function in data.py in electricity_price_predictor folder.
+The clean, hourly, up-to-date electricity price data can be obtained by calling get_shifted_price() function from electricity_price_predictor.data.
 
 **Historical weather of Denmark**
 
 purchased from [openweather](https://openweathermap.org/)
 
-I could not make this data public becasue I only have the licence for usage but not the ownership.
+Because I only have the licence for usage but not the ownership, I am not putting the data here.
 
 **Future weather of Denmark**
 
