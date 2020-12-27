@@ -1,7 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Import from electricity_price_predictor
-from electricity_price_predictor.sarimax import plot_sarimax_forecast_24
+import pandas as pd
+from datetime import date
+from electricity_price_predictor.data import get_updated_price, get_updated_weather, get_shifted_price
 
-plot_sarimax_forecast_24()
+if __name__== '__main__':
+    today = date.today()
+    tmp = get_updated_price()
+    df_price = get_shifted_price(tmp)
+    df_weather = get_updated_weather()
+    df_weather = df_weather[df_weather.index.date < today]
+    df_price = df_price[df_price.index.date < today]
+
+    print('price missing values:', df_price.isnull().sum()[0])
+    print('weather missing values:', df_weather.isnull().sum()[0])
