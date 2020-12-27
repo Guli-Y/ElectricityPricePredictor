@@ -9,10 +9,13 @@ import json
 import xmltodict
 from geopy.geocoders import Nominatim
 
+path = os.path.dirname(os.path.abspath(__file__))
+
 #################### get csv files ############################################
 
-def file_names(path='../'):
+def file_names():
     '''it gets the csv file names from raw_data directory'''
+    path = os.path.join(path, '..')
     csv_files = []
     for root, direc, files in os.walk(path):
         if 'raw_data\\' in root:
@@ -21,9 +24,10 @@ def file_names(path='../'):
 
 ################### get price data #############################################
 
-def get_price(path='../raw_data/price/'):
+def get_price():
     '''it merges all the electricity price csv files and return one df with
     hourly electricity price from 01-01-2015 till 24-11-2020 '''
+    path = os.path.join(path, '..', 'raw_data', 'price')
     price_files = file_names()[2]
     df = pd.read_csv(path+price_files[0])
     for file in price_files[1:]:
@@ -41,7 +45,7 @@ def get_price(path='../raw_data/price/'):
     df.to_csv('../raw_data/updated_price.csv')
     return df
 
-def get_dayahead_price(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6"):
+def get_dayahead_price(start, stop, key=ENSTOSE_API_KEY ):
     """Returns dataframe with day-ahead electricity prices for DK1 within specified date range.
        API calls to 'https://transparency.entsoe.eu/'
        start and stop should be datetime objects
@@ -95,7 +99,8 @@ def get_dayahead_price(start, stop, key= "2cb13288-8a3f-4344-b91f-ea5fd405efa6")
 def get_updated_price():
     ''' returns df with hourly electricity prices up to tomorrow midnight'''
     # get past price
-    df = pd.read_csv('../data/updated_price.csv', parse_dates=True, index_col='time')
+    file = os.path.join(path, 'data', 'updated_price.csv')
+    df = pd.read_csv(file, parse_dates=True, index_col='time')
 
     dayahead = date.today() + timedelta(days=1)
     try: # after 13:00 day-ahead price is available
@@ -112,7 +117,7 @@ def get_updated_price():
 
             # update the price csv
             df = pd.concat([df, new_price])
-            df.to_csv('../data/updated_price.csv')
+            df.to_csv(file)
     except: # before 13:00 day-ahead price is not availeble
         pass
 
@@ -206,7 +211,7 @@ def get_weather_forecast(city):
     """returns the weather forecast for a given Danish city
     in json format"""
 
-    key = '7028ef7cb1384c020af39dc40e0e14b5'
+    key = OPENWEATHER_API_KEY2
 
     geolocator = Nominatim(user_agent="dk_explorer")
     location = geolocator.geocode(city + ' DK')
@@ -241,7 +246,7 @@ def get_past_weather(date_):
     t_unix = int(time.mktime(date_.timetuple()))
 
     # openweather api endpoints
-    key = '7028ef7cb1384c020af39dc40e0e14b5'
+    key = OPENWEATHER_API_KEY
 
     # retireive weather for each city
     weather = {}
@@ -337,9 +342,9 @@ def get_updated_weather():
     '''it gets historical weather data and merge it with weather forecast for next 48h,
     and saves the updated data to updated_data.csv and returns the up to date weather data.
     This function needs to be called at least once in every 48 hours to keep weather data complete'''
-
+    file = os.path.join(path, '..', 'raw_data', 'updated_weather.csv')
     # collect historical weather data
-    df_hist = pd.read_csv('../raw_data/updated_weather.csv', parse_dates=True, index_col='dt')
+    df_hist = pd.read_csv(file, parse_dates=True, index_col='dt')
 
     # get forecasted weather data
     df_forecast = get_weather_48()
@@ -349,7 +354,7 @@ def get_updated_weather():
     df = pd.concat([df_hist, df_forecast])
 
     # save the updated_data
-    df.to_csv('../raw_data/updated_weather.csv')
+    df.to_csv(file)
 
     return df
 
