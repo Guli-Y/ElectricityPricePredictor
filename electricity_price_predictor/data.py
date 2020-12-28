@@ -349,9 +349,17 @@ def get_updated_weather():
     # get forecasted weather data
     df_forecast = get_weather_48()
 
-    # concat forecast weather with past weather
+    # concat forecast weather with historical weather
     df_hist = df_hist[df_hist.index < df_forecast.index[0]]
     df = pd.concat([df_hist, df_forecast])
+
+    # update last two days' weather with historical weather
+    for i in range(3):
+        day = date.today()-timedelta(days=i)
+        past = get_past_weather(day)
+        columns = ['temp', 'humidity', 'wind_speed']
+        for col in columns:
+            df.at[past.index[0]:past.index[-1], col] = past.loc[past.index[0]:past.index[-1], col]
 
     # save the updated_data
     df.to_csv(file)
