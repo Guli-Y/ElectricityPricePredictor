@@ -21,14 +21,15 @@ def plot_forecast(forecast, past):
     ax.format_xdata = mdates.DateFormatter('%d-%H-%m')
     fig.autofmt_xdate()
     # save the forecast plot for heroku webpage
-    print(colored('############## saving forecast plot ##############', 'red'))
+    print(colored('############## saving forecast plot ##############', 'green'))
     plt.savefig('../forecast_data/forecast.png')
 
 
 def sarimax_forecast(df):
     '''it takes a dataframe with past and future values and split it into
-    train/forecast sets based on the availability of price and returns
-    forecast dataframe and past prices'''
+    train/forecast sets based on the availability of price
+    it forecasts electricity price for next hour and returns forecast dataframe
+    and past prices'''
 
     # split past and furture
     past = df[~df.price.isnull()]
@@ -60,20 +61,21 @@ def sarimax_forecast(df):
     return forecast, past
 
 def sarimax_forecast_24():
-    '''it calls sarimax_forecast function and 24 times to get hourly forecast and
-    plot the forecast results using plot_forecast function'''
+    '''it calls sarimax_forecast function 24 times to get hourly forecast for
+    next day '''
+    print(colored('############## loading data ##############', 'blue'))
     df = get_data()
     forecasts = []
     pasts = []
     # loop over to get forecast for each hour
     for i in range(1, 24):
-        print(colored(f"############## forecasting for {str(i)}:00 o'clock ##############", 'blue'))
+        print(colored(f"############## forecasting for {str(i)}:00 o'clock ##############", 'green'))
         df_i = df[df.index.hour==i]
         forecast_i, past_i = sarimax_forecast(df_i)
         forecasts.append(forecast_i)
         pasts.append(past_i)
     # merge 24 hours
-    print(colored('############## Merging forecasts data ##############', 'green'))
+    print(colored('############## merging forecast data ##############', 'red'))
     df_0 = df[df.index.hour==0]
     forecast_df, past_df = sarimax_forecast(df_0)
     for forecast, past in zip(forecasts, pasts):
@@ -84,13 +86,11 @@ def sarimax_forecast_24():
     past_df = past_df.sort_index()
     return forecast_df, past_df
 
-def plot_sarimax_forecast_24():
-    '''it calls sarimax_forecast_24 function and
-    plot the forecast results using plot_forecast function'''
+if __name__=='__main__':
     forecast, past = sarimax_forecast_24()
     # save the forecast results
-    print(colored('############## saving forecast results ##############', 'red'))
+    print(colored('############## saving merged forecast data ##############', 'green'))
     forecast.to_csv('../forecast_data/forecast_data.csv')
     # plot the forecast results
-    print(colored('############## plotting forecast results ##############', 'green'))
+    print(colored('############## plotting forecast results ##############', 'blue'))
     plot_forecast(forecast, past)

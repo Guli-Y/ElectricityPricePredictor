@@ -6,8 +6,7 @@ from datetime import date
 from electricity_price_predictor.data import get_updated_price, get_updated_weather, get_shifted_price
 
 if __name__== '__main__':
-    tmp = get_updated_price()
-    df_price = get_shifted_price(tmp)
+    df_price = get_shifted_price()
     df_weather = get_updated_weather()
     today = date.today()
     df_weather = df_weather[df_weather.index.date < today]

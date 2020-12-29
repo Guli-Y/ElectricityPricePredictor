@@ -1,4 +1,3 @@
-*/version.txt
 *.pyc
 *.swp
 build/
@@ -10,4 +9,4 @@ groupama/data/base_pno.*
 .DS_Store
 .idea/
 /raw_data/
-notebooks/DataMerging.ipynb
+/electricity_price_predictor.egg-info/

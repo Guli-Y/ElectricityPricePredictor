@@ -96,20 +96,12 @@ def train_sarimax(data=False, hour=11,
             confidence_int = results.conf_int()
         # Build Model with exogenous features
         else:
-            # StandardScaling the exogenous features
-            # scaler = StandardScaler()
-            # scaler = scaler.fit(train_set[['wind_speed', 'temp', 'humidity']])
-            # train_set.loc[:,['wind_speed', 'temp', 'humidity']]=\
-            # scaler.transform(train_set[['wind_speed', 'temp', 'humidity']])
             # training model
             sarima = SARIMAX(train_set.price, exog=train_set[exog[0]],
                          order=exog[1], seasonal_order=exog[2])
             sarima = sarima.fit(maxiter=200)
             # get features for forecast
             exog_fore = test[test.index==predict_date[0]][exog[0]]
-            # scaling features for forecast
-            # exog_fore.loc[:,['wind_speed', 'temp', 'humidity']]=\
-            # scaler.transform(exog_fore[['wind_speed', 'temp', 'humidity']])
             # forecasting
             results = sarima.get_forecast(1, exog=exog_fore, alpha=0.05)
             forecast = sarima.forecast(1, exog=exog_fore, alpha=0.05)
