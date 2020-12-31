@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import timedelta, date, timezone, datetime
 import holidays
-from electricity_price_predictor.tools import call_dayahead_price, call_past_weather, call_weather_forecast
+from electricity_price_predictor.api import call_dayahead_price, call_past_weather, call_weather_forecast
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
