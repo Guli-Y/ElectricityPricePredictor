@@ -14,6 +14,40 @@ def fetch_files(path=PATH):
             csv_files.append(files)
     return csv_files
 
+def get_historical_weather(path=PATH, selected_features=False):
+    file = os.path.join(path, '..', 'raw_data', 'weather_2015_2020.csv')
+    df = pd.read_csv(file)
+    df['dt'] = pd.to_datetime(df.dt)
+    # selecting useful columns
+    cols = ['temp', 'feels_like', 'humidity',  'clouds_all', 'wind_speed']
+    df = df[cols]
+    # add population column
+    population = {'Aarhus': 349_983,
+    'Odense': 204_895,
+    'Aalborg': 217_075,
+    'Esbjerg': 115_748,
+    'Vejle': 111_743,
+    'Randers': 96_559,
+    'Viborg': 93_819,
+    'Kolding': 89_412,
+    'Silkeborg': 89_328,
+    'Herning': 86_348,
+    'Horsens': 83_598}
+    df['population'] = [population[city] for city in df.city_name]
+    #group by datetime and average weather values according to city population
+    weather_df = pd.DataFrame()
+    for col in cols:
+        weather_df[col] = df.groupby(df.dt).apply(lambda x : np.average(x[col], weights=x.population))
+    # check for missing indices
+    missing_idx = pd.date_range(start = '2015-01-01', end = '2020-11-24', freq='H' ).difference(weather_df.index)
+    # impute missing indices with average of bounding rows
+    for idx in missing_idx:
+        weather_df.loc[idx] = weather_df.loc[pd.to_datetime(idx) - timedelta(hours=1)] + \
+                      weather_df.loc[pd.to_datetime(idx) + timedelta(hours=1)] / 2
+    weather_df.set_index(pd.DatetimeIndex(weather_df.index), inplace=True)
+    weather_df = weather_df.sort_index()
+    return weather_df
+
 def get_load(path='../raw_data/load/'):
     load_files = fetch_files()[1]
     df = pd.read_csv(path+load_files[0])

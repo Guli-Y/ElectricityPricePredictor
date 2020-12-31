@@ -6,6 +6,10 @@ from geopy.geocoders import Nominatim
 import xmltodict
 import time
 import os
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 ENSTOSE_API_KEY = os.getenv('ENSTOSE_API_KEY')
 OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')

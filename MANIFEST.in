@@ -1,4 +1,3 @@
 graft electricity_price_predictor
 global-exclude *.py[cod] __pycache__ *.so *.ipynb
-recursive-exclude  electricity_price_predictor/jupy *
 include requirements.txt

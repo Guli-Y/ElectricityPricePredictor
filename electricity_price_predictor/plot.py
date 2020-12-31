@@ -47,6 +47,4 @@ def plot_forecast(forecast, past):
     ax.grid(True)
     ax.format_xdata = mdates.DateFormatter('%d-%H-%m')
     fig.autofmt_xdate()
-    # save the forecast plot for heroku webpage
-    print(colored('############## saving forecast plot ##############', 'green'))
-    plt.savefig('../forecast_data/forecast.png')
+    return fig

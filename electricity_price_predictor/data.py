@@ -1,20 +1,24 @@
-import os
 import numpy as np
 import pandas as pd
 from datetime import timedelta, date, timezone, datetime
 import holidays
 from electricity_price_predictor.api import call_dayahead_price, call_past_weather, call_weather_forecast
+from google.cloud import storage
+from termcolor import colored
+import gcsfs
+import os
 
-PATH = os.path.dirname(os.path.abspath(__file__))
+BUCKET_NAME = 'electricity_price_predictor'
 
 ########################## get price data ######################################
-def get_updated_price(path=PATH):
+def get_updated_price():
     ''' it calls enstsoe api to get dayahead prices and updates the historical
     dayahead prices then returns a df which contains dayahead prices of electricity
     from 01-01-2015 till tomorrow'''
     # get past price
-    file = os.path.join(path, 'data', 'updated_price.csv')
-    df = pd.read_csv(file, parse_dates=True, index_col='time')
+    location = f'gs://{BUCKET_NAME}/data/updated_price.csv'
+    print(colored(f'loading price data from cloud storage \n <= {location}', 'green'))
+    df = pd.read_csv(location, parse_dates=True, index_col='time')
     dayahead = date.today() + timedelta(days=1)
     try: # after 13:00 day-ahead price is available
         while df.index[-1].date() < dayahead:
@@ -27,9 +31,17 @@ def get_updated_price(path=PATH):
             new_price.set_index(pd.DatetimeIndex(new_price.index), inplace=True)
             # update the price csv
             df = pd.concat([df, new_price])
-            df.to_csv(file)
     except: # before 13:00 day-ahead price is not availeble
         pass
+    # save the updated_price
+    df.to_csv('updated_price.csv')
+    # upload the updated price data to cloud storage
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob('data/updated_price.csv')
+    blob.upload_from_filename('updated_price.csv')
+    print(colored(f'uploaded updated price data to cloud storage \n => {location}', 'blue'))
+    os.remove('updated_price.csv')
     return df
 
 def get_shifted_price(df=None):
@@ -78,27 +90,6 @@ POPULATION = {'Aarhus': 349_983,
 # cities in DK1 region
 CITIES = [key for key in POPULATION.keys()]
 
-def get_historical_weather(path=PATH, selected_features=False):
-    file = os.path.join(path, '..', 'raw_data', 'weather_2015_2020.csv')
-    df = pd.read_csv(file)
-    df['dt'] = pd.to_datetime(df.dt)
-    # selecting useful columns
-    cols = ['temp', 'feels_like', 'humidity',  'clouds_all', 'wind_speed']
-    df = df[cols]
-    df['population'] = [POPULATION[city] for city in df.city_name]
-    #group by datetime and average weather values according to city population
-    weather_df = pd.DataFrame()
-    for col in cols:
-        weather_df[col] = df.groupby(df.dt).apply(lambda x : np.average(x[col], weights=x.population))
-    # check for missing indices
-    missing_idx = pd.date_range(start = '2015-01-01', end = '2020-11-24', freq='H' ).difference(weather_df.index)
-    # impute missing indices with average of bounding rows
-    for idx in missing_idx:
-        weather_df.loc[idx] = weather_df.loc[pd.to_datetime(idx) - timedelta(hours=1)] + \
-                      weather_df.loc[pd.to_datetime(idx) + timedelta(hours=1)] / 2
-    weather_df.set_index(pd.DatetimeIndex(weather_df.index), inplace=True)
-    weather_df = weather_df.sort_index()
-    return weather_df
 
 def get_past_weather(date_):
     """returns weather data for DK1 region on date (date_ - 1 day) by calling openweather api"""
@@ -155,27 +146,39 @@ def get_weather_forecast():
     weather_df = weather_df.sort_index()
     return weather_df
 
-def get_updated_weather(path=PATH):
+def get_updated_weather():
     '''it gets historical weather data and merge it with weather forecast for next 48h,
     and saves the updated data to updated_data.csv and returns the up to date weather data.
     This function needs to be called at least once in every 48 hours to keep weather data complete'''
-    file = os.path.join(path, '..', 'raw_data', 'updated_weather.csv')
     # collect historical weather data
-    df_hist = pd.read_csv(file, parse_dates=True, index_col='dt')
-    # get forecasted weather data
-    df_forecast = get_weather_forecast()
-    # concat forecast weather with historical weather
-    df_hist = df_hist[df_hist.index < df_forecast.index[0]]
-    df = pd.concat([df_hist, df_forecast])
-    # update last two days' weather with historical weather
-    for i in range(3):
-        day = date.today()-timedelta(days=i)
-        past = get_past_weather(day)
-        columns = ['temp', 'humidity', 'wind_speed']
-        for col in columns:
-            df.at[past.index[0]:past.index[-1], col] = past.loc[past.index[0]:past.index[-1], col]
-    # save the updated_data
-    df.to_csv(file)
+    location = f'gs://{BUCKET_NAME}/data/updated_weather.csv'
+    print(colored(f'loading weather data from cloud storage \n <= {location}', 'green'))
+    df_hist = pd.read_csv(location, parse_dates=True, index_col='dt')
+    now_add_47h = datetime.now() + timedelta(hours=47)
+    if df_hist.index[-1] < now_add_47h:
+        # get forecasted weather data
+        df_forecast = get_weather_forecast()
+        # concat forecast weather with historical weather
+        df_hist = df_hist[df_hist.index < df_forecast.index[0]]
+        df = pd.concat([df_hist, df_forecast])
+        # update last two days' weather with historical weather
+        for i in range(3):
+            day = date.today()-timedelta(days=i)
+            past = get_past_weather(day)
+            columns = ['temp', 'humidity', 'wind_speed']
+            for col in columns:
+                df.at[past.index[0]:past.index[-1], col] = past.loc[past.index[0]:past.index[-1], col]
+        # save the updated_data
+        df.to_csv('updated_weather.csv')
+        # upload the updated_weather to cloud storage
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
+        blob = bucket.blob(f'data/updated_weather.csv')
+        blob.upload_from_filename('updated_weather.csv')
+        print(colored(f'uploaded updated weather data to cloud storage \n => {location}', 'blue'))
+        os.remove('updated_weather.csv')
+    else:
+        df = df_hist
     return df
 
 #############################   get holidays   #################################
@@ -232,3 +235,7 @@ def get_data(hour=False):
     else:
         df_merged = df_merged[df_merged.index.hour==hour]
     return df_merged
+
+if __name__ == '__main__':
+    df = get_data(hour=11)
+    print(df.iloc[-5:])

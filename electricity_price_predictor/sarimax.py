@@ -4,6 +4,12 @@ import pandas as pd
 import numpy as np
 from termcolor import colored
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from datetime import date
+import matplotlib.pyplot as plt
+from google.cloud import storage
+import os
+
+BUCKET_NAME = 'electricity_price_predictor'
 
 def sarimax_forecast(df):
     '''it takes a dataframe split it into train/forecast sets based on
@@ -69,9 +75,25 @@ def sarimax_forecast_24(df=None):
 
 if __name__=='__main__':
     forecast, past = sarimax_forecast_24()
-    # save the forecast results
-    print(colored('############## saving merged forecast data ##############', 'green'))
-    forecast.to_csv('../forecast_data/forecast_data.csv')
-    # plot the forecast results
-    print(colored('############## plotting forecast results ##############', 'blue'))
-    plot_forecast(forecast, past)
+    # save the forecast results locally
+    today = date.today()
+    data = f'forecast_{today}.csv'
+    fig = f'forecast_{today}.png'
+    forecast.to_csv(data)
+    fig = plot_forecast(forecast, past)
+    fig.savefig(fig)
+    # upload to GCP cloud storage
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+        # forecast data
+    blob = bucket.blob('forecast/'+data)
+    blob.upload_from_filename(data)
+    location = f'gs://{BUCKET_NAME}/forecast/{data}'
+    print(colored(f'forecast data uploaded to cloud storage \n => {location}', 'green'))
+        # forecast figure
+    blob = bucket.blob('forecast/'+fig)
+    blob.upload_from_filename(fig)
+    location = f'gs://{BUCKET_NAME}/forecast/{fig}'
+    print(colored(f'forecast figure uploaded to cloud storage \n => {location}', 'blue'))
+    os.remove(data)
+    os.remove(fig)
