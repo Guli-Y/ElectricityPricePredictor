@@ -18,3 +18,5 @@ streamlit
 joblib
 xmltodict
 termcolor
+python-dotenv
+pathlib

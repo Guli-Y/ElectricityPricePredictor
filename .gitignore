@@ -10,3 +10,4 @@ groupama/data/base_pno.*
 .idea/
 /raw_data/
 /electricity_price_predictor.egg-info/
+.env
