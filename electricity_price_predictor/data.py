@@ -32,9 +32,10 @@ def get_updated_price(path=PATH):
         pass
     return df
 
-def get_shifted_price():
+def get_shifted_price(df=None):
     """get price data and performs shift according to daylight saving"""
-    df = get_updated_price()
+    if df is None:
+        df = get_updated_price()
     df_1 = df.loc['2015-01-01 00:00:00':'2015-03-29 01:00:00']
     df_2 = df.loc['2015-03-29 02:00:00':'2015-10-25 02:00:00']
     df_3 = df.loc['2015-10-25 03:00:00':'2016-03-27 01:00:00']
