@@ -15,7 +15,7 @@ def fetch_files(path=PATH):
     return csv_files
 
 def get_load(path='../raw_data/load/'):
-    load_files = file_names()[1]
+    load_files = fetch_files()[1]
     df = pd.read_csv(path+load_files[0])
     for file in load_files[1:]:
         df_2 = pd.read_csv(path+file)
@@ -140,7 +140,7 @@ def get_all():
     df_all.dropna(inplace=True)
     return df_all
 
-def get_hourly_data(hour=11):
+def get_daily_data(hour=11):
     df = get_all()
     df = df[df.index.hour==hour]
     return df
