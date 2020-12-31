@@ -1,7 +1,7 @@
 # ----------------------------------
 #          GCP
 # ----------------------------------
-JOB_NAME=electricity_price_predictor__$(shell date +'%Y%m%d')
+JOB_NAME=electricity_price_predictor_$(shell date +'%Y%m%d_%H%M')
 BUCKET_NAME=electricity_price_predictor
 BUCKET_TRAINING_FOLDER=trainings
 PACKAGE_NAME=electricity_price_predictor
