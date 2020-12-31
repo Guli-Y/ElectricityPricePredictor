@@ -7,7 +7,8 @@ from datetime import date
 
 
 def test_get_shifted_price():
-    df = get_updated_price()
+    location = f'gs://electricity_price_predictor/data/updated_price.csv'
+    df = pd.read_csv(location, parse_dates=True, index_col='time')
     today = date.today()
     assert df.index[-1] >= today
     assert df.price.isnull().sum() == 6
