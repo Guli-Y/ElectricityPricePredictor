@@ -1,35 +1,15 @@
 from electricity_price_predictor.data import get_data
+from electricity_price_predictor.plot import plot_forecast
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from termcolor import colored
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
-def plot_forecast(forecast, past):
-    '''it will plot a forecast'''
-    fig, ax = plt.subplots(figsize=(10,4), dpi=100)
-    ax.plot(past, label='day-ahead', color='black')
-    ax.plot(forecast.price, label='forecast', color='blue')
-    ax.fill_between(forecast.index, forecast.lower, forecast.upper, label='confidence interval',
-                    color='k', alpha=.15)
-    title = 'Electricity Price Forecast - 2days-ahead (EUR/Mwh)'
-    ax.set_title(title)
-    ax.legend(loc='upper left', fontsize=8)
-    ax.set_ylabel('price')
-    ax.grid(True)
-    ax.format_xdata = mdates.DateFormatter('%d-%H-%m')
-    fig.autofmt_xdate()
-    # save the forecast plot for heroku webpage
-    print(colored('############## saving forecast plot ##############', 'green'))
-    plt.savefig('../forecast_data/forecast.png')
-
-
 def sarimax_forecast(df):
-    '''it takes a dataframe with past and future values and split it into
-    train/forecast sets based on the availability of price
-    it forecasts electricity price for next hour and returns forecast dataframe
-    and past prices'''
+    '''it takes a dataframe split it into train/forecast sets based on
+    the availability of price and then forecasts electricity price for next hour.
+    it returns forecast dataframe ('price','lower_interval', 'upper_interval') and
+    historical price dataframe ('price')'''
 
     # split past and furture
     past = df[~df.price.isnull()]
@@ -55,19 +35,20 @@ def sarimax_forecast(df):
         upper = results.conf_int()['upper price'][0]
 
     # create forecast df with datetimeIndex
-    forecast = pd.DataFrame(dict(price=forecast, lower=lower, upper=upper),
-                            index=future.index)
+    forecast = pd.DataFrame(dict(price=forecast, lower_interval=lower,
+                                    upper_interval=upper), index=future.index)
     past = past.iloc[-1:,0]
     return forecast, past
 
-def sarimax_forecast_24():
+def sarimax_forecast_24(df=None):
     '''it calls sarimax_forecast function 24 times to get hourly forecast for
     next day '''
-    print(colored('############## loading data ##############', 'blue'))
-    df = get_data()
+    if df is None:
+        print(colored('############## loading data ##############', 'blue'))
+        df = get_data()
+    # loop over to get forecast for each hour
     forecasts = []
     pasts = []
-    # loop over to get forecast for each hour
     for i in range(1, 24):
         print(colored(f"############## forecasting for {str(i)}:00 o'clock ##############", 'green'))
         df_i = df[df.index.hour==i]
