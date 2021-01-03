@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import pandas as pd
 from datetime import date
-from electricity_price_predictor.data import get_updated_price, get_updated_weather, get_shifted_price
+from electricity_price_predictor.data import get_data, get_shifted_price
+import gcsfs
+
 
 if __name__== '__main__':
-    df_price = get_shifted_price()
-    df_weather = get_updated_weather()
+    get_data()
+    price = 'https://storage.googleapis.com/electricity_price_predictor/data/updated_price.csv'
+    df = pd.read_csv(price, parse_dates=True, index_col='time')
+    df_price = get_shifted_price(df)
+    weather = 'gs://electricity_price_predictor/data/updated_weather.csv'
+    df_weather = pd.read_csv(weather, parse_dates=True, index_col='dt')
     today = date.today()
     df_weather = df_weather[df_weather.index.date < today]
     df_price = df_price[df_price.index.date < today]
