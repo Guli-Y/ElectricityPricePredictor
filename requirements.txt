@@ -21,3 +21,4 @@ termcolor
 google-cloud-storage
 python-dotenv
 gcsfs
+streamlit
