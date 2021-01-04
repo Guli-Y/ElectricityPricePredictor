@@ -51,7 +51,7 @@ image = Image.open("DK1.png")
 st.image(image, caption='map', use_column_width=True)
 
 # loading forecast data
-today = date.today() - timedelta(days=1)
+today = date.today()
 forecast_data = f'https://storage.googleapis.com/electricity_price_predictor/forecast/forecast_{today}.csv'
 df = pd.read_csv(forecast_data)
 
