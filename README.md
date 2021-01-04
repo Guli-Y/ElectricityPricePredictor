@@ -6,7 +6,7 @@ For the detailed description and evaluation of each model, please refere to the 
 
 If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing)
 
-If you are interested in our forecast results, checkout our heroku [webpage](https://pricepred-g.herokuapp.com/)
+If you are interested in our app, check out heroku [webpage](https://electricity-price-predictor.herokuapp.com/)
 
 
 # Data sources
@@ -42,32 +42,6 @@ Features explored but did't contribute to forecasting accuracy:
 4. production by wind
 5. wind production / total production
 
-# Content of Repository
-
-**data**
-updated_price.csv : the historical electricity prices
-
-**electricity_price_predictor**
-data.py : all the functions used for data collection and preprocessing
-sarima.py : functions for feature explorations, walk forward validation, ploting
-sarimax.py : functions for forecasting and ploting
-
-**forecast_data**
-forecast.png : the plot showing day-ahead hourly prices and the forecasted 2day-ahead hourly prices
-forecast_data.csv : the forecasted 2day-ahead hourly prices stored in csv
-
-**notebooks**
-
-sarimax_guli.ipynb : creation of sarimax model with detailed explanations. It includes data exploration, feature selection, walk forward validation, and forecast.
-....
-....
-
-**scripts**
-
-**tests**
-data_test.py :
-
-**app.py**
 
 ..............working on it.....................
 
