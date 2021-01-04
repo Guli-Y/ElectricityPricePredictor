@@ -47,4 +47,5 @@ def plot_forecast(forecast, past):
     ax.grid(True)
     ax.format_xdata = mdates.DateFormatter('%d-%H-%m')
     fig.autofmt_xdate()
+    plt.subplots_adjust(left=0)
     return fig
