@@ -57,17 +57,17 @@ df = pd.read_csv(forecast_data)
 
 # showing forecast figure and data side by side
 st.markdown("Table 1 - DK1 " + str(df.date_time[0][:10]) + " - Hourly Electricity Price")
-col1, col2 = st.beta_columns([5,1])
+col1, col2 = st.beta_columns([6,2])
 
 with col1:
     st.line_chart(df['price'])
 
 with col2:
-    st.write(df['price'], use_column_width=True)
+    st.write(df['price'])
 
 # forecast figure including day ahead price and twoday_ahead price
 forecast_fig = f'https://storage.googleapis.com/electricity_price_predictor/forecast/forecast_{today}.png'
-st.image(forecast_fig, aption= 'Inventory Planner', use_column_width=True)
+st.image(forecast_fig, aption= 'Inventory Planner', width=1000)
 
 ### Creating a link to download the data or plot
 st.markdown("""Click the link below to download the data in csv format""")
