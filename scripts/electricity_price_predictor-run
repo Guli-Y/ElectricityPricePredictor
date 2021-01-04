@@ -7,8 +7,8 @@ import gcsfs
 
 
 if __name__== '__main__':
-    get_data()
-    price = 'https://storage.googleapis.com/electricity_price_predictor/data/updated_price.csv'
+    #get_data()
+    price = 'gs://electricity_price_predictor/data/updated_price.csv'
     df = pd.read_csv(price, parse_dates=True, index_col='time')
     df_price = get_shifted_price(df)
     weather = 'gs://electricity_price_predictor/data/updated_weather.csv'
