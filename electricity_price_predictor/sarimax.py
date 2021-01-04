@@ -43,6 +43,7 @@ def sarimax_forecast(df):
     # create forecast df with datetimeIndex
     forecast = pd.DataFrame(dict(price=forecast, lower_interval=lower,
                                     upper_interval=upper), index=future.index)
+    forecast.index.name = 'date_time'
     past = past.iloc[-1:,0]
     return forecast, past
 
@@ -78,10 +79,10 @@ if __name__=='__main__':
     # save the forecast results locally
     today = date.today()
     data = f'forecast_{today}.csv'
-    figure = f'forecast_{today}.png'
+    fig = f'forecast_{today}.png'
     forecast.to_csv(data)
-    fig = plot_forecast(forecast, past)
-    fig.savefig(figure)
+    figure = plot_forecast(forecast, past)
+    figure.savefig(fig)
     # upload to GCP cloud storage
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
@@ -91,9 +92,9 @@ if __name__=='__main__':
     location = f'gs://{BUCKET_NAME}/forecast/{data}'
     print(colored(f'forecast data uploaded to cloud storage \n => {location}', 'green'))
         # forecast figure
-    blob = bucket.blob('forecast/'+figure)
-    blob.upload_from_filename(figure)
-    location = f'gs://{BUCKET_NAME}/forecast/{figure}'
+    blob = bucket.blob('forecast/'+fig)
+    blob.upload_from_filename(fig)
+    location = f'gs://{BUCKET_NAME}/forecast/{fig}'
     print(colored(f'forecast figure uploaded to cloud storage \n => {location}', 'blue'))
     os.remove(data)
-    os.remove(figure)
+    os.remove(fig)
