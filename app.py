@@ -53,11 +53,10 @@ st.image(image, caption='map', use_column_width=True)
 # loading forecast data
 today = date.today()
 forecast_data = f'https://storage.googleapis.com/electricity_price_predictor/forecast/forecast_{today}.csv'
-df = pd.read_csv(forecast_data)
+df = pd.read_csv(forecast_data, parse_dates=True, index_col='date_time')
 
 # showing forecast figure and data side by side
-twoday_ahead = str(today + timedelta(days=2))
-st.markdown("Table 1 - DK1 " + twoday_ahead + " - Hourly Electricity Price")
+st.markdown("Table 1 - DK1 " + str(df.index.date()[0]) + " - Hourly Electricity Price")
 col1, col2 = st.beta_columns([5,1])
 
 with col1:
