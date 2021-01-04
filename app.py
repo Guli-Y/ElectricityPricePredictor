@@ -23,7 +23,7 @@ st.markdown(
 """, unsafe_allow_html=True)
 st.sidebar.markdown("""
     <style>
-        #title {color: black;
+        #title {color: red;
         font-size: 36px;
         text-align: right;}
     </style>
@@ -32,7 +32,7 @@ st.sidebar.markdown("""
     """, unsafe_allow_html=True)
 st.sidebar.markdown("""
      <style>
-        #subtitle {color: black;
+        #subtitle {color: red;
         font-size: 24px}
     </style>
      <b id="subtitle"> Powering up your life </b>
