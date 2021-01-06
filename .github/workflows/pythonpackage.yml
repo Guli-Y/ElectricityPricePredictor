@@ -27,12 +27,13 @@ jobs:
     - name: Install package and test
       run: |
         make install test clean
+
   deploy_heroku:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: akhileshns/deploy-heroku@v3.8.8
+      - uses: akhileshns/heroku-deploy@v3.8.8
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "electricity_price_predictor"
+          heroku_app_name: "electricity-price-predictor"
           heroku_email: "g.yimingjiang@gmail.com"
