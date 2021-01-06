@@ -1,4 +1,11 @@
 # ----------------------------------
+#          Deployment
+# ----------------------------------
+update_heroku:
+	git commit --allow-empty -m 'trigger heroku after updating forecast data'
+	git push heroku master
+
+# ----------------------------------
 #          GCP
 # ----------------------------------
 JOB_NAME=electricity_price_predictor_$(shell date +'%Y%m%d_%H%M')
@@ -10,9 +17,9 @@ PYTHON_VERSION=3.7
 RUNTIME_VERSION=2.3
 REGION=europe-west1
 
-run_locally:
-	@python -m ${PACKAGE_NAME}.${FILENAME}
-
+train_local:
+	python -m ${PACKAGE_NAME}.${FILENAME}
+	start "https://electricity-price-predictor.herokuapp.com/"
 
 train_on_gcp:
 	gcloud ai-platform jobs submit training ${JOB_NAME} \
@@ -22,6 +29,7 @@ train_on_gcp:
 					--python-version=${PYTHON_VERSION} \
 					--runtime-version=${RUNTIME_VERSION} \
 					--region ${REGION}
+	start "https://electricity-price-predictor.herokuapp.com/"
 # ----------------------------------
 #          INSTALL & TEST
 # ----------------------------------
