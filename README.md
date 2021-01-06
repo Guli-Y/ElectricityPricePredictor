@@ -1,12 +1,16 @@
 # Project aim:    **Forecast Electricity Price for DK1**
 
-This project was the final project of my team at Le Wagon Data Science Bootcamp. The team members are the contributers of this repository.
+This project was the final project of my team at Le Wagon Data Science Bootcamp.
+The team members are the contributers of this repository.
 
-For the detailed description and evaluation of each model, please refere to the notebook of corresponding model in notebooks directory
+This project is about developing a model for forecasting day-ahead electricity prices of biding zone DK1 (Denmark)
+using data from Entose Transparency Platform and OpenWeatherMap. It includes data sourcing and exploration,
+feature engineering, training time series model, evaluating model performance using walk-forward validation,
+and continuious deployment on Heroku.
 
-If you are interested in our final presentation, please checkout this [slide](https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing)
+If you are interested in our web app, check this out https://electricity-price-predictor.herokuapp.com/
 
-If you are interested in our app, check out heroku [webpage](https://electricity-price-predictor.herokuapp.com/)
+If you are interested in our final presentation, check out our slide https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing
 
 
 # Data sources
@@ -43,59 +47,4 @@ Features explored but did't contribute to forecasting accuracy:
 5. wind production / total production
 
 
-..............working on it.....................
-
-The initial setup.
-
-Create virtualenv and install the project:
-```bash
-  $ sudo apt-get install virtualenv python-pip python-dev
-  $ deactivate; virtualenv ~/venv ; source ~/venv/bin/activate ;\
-    pip install pip -U; pip install -r requirements.txt
-```
-
-Unittest test:
-```bash
-  $ make clean install test
-```
-
-Check for electricity_price_predictor in gitlab.com/{group}.
-If your project is not set please add it:
-
-- Create a new project on `gitlab.com/{group}/electricity_price_predictor`
-- Then populate it:
-
-```bash
-  $ ##   e.g. if group is "{group}" and project_name is "electricity_price_predictor"
-  $ git remote add origin git@gitlab.com:{group}/electricity_price_predictor.git
-  $ git push -u origin master
-  $ git push -u origin --tags
-```
-
-Functionnal test with a script:
-```bash
-  $ cd /tmp
-  $ electricity_price_predictor-run
-```
-# Install
-Go to `gitlab.com/{group}/electricity_price_predictor` to see the project, manage issues,
-setup you ssh public key, ...
-
-Create a python3 virtualenv and activate it:
-```bash
-  $ sudo apt-get install virtualenv python-pip python-dev
-  $ deactivate; virtualenv -ppython3 ~/venv ; source ~/venv/bin/activate
-```
-
-Clone the project and install it:
-```bash
-  $ git clone gitlab.com/{group}/electricity_price_predictor
-  $ cd electricity_price_predictor
-  $ pip install -r requirements.txt
-  $ make clean install test                # install and test
-```
-Functionnal test with a script:
-```bash
-  $ cd /tmp
-  $ electricity_price_predictor-run
-```
+For details about data exploration and model evaluation, please go to the notebooks.
