@@ -52,7 +52,7 @@ st.image(image, caption='map', use_column_width=True)
 
 # loading forecast data
 today = date.today()
-forecast_data = f'https://storage.googleapis.com/electricity_price_predictor/forecast/forecast_{today}.csv'
+forecast_data = f'forecast_{today}.csv'
 df = pd.read_csv(forecast_data)
 
 # showing forecast figure and data side by side
@@ -64,9 +64,9 @@ with col1:
 
 with col2:
     st.write(df['price'])
-
+st.markdown("""Forecasting period is limited here because the future weather data need to be purchased""")
 # forecast figure including day ahead price and twoday_ahead price
-forecast_fig = f'https://storage.googleapis.com/electricity_price_predictor/forecast/forecast_{today}.png'
+forecast_fig = f'forecast_{today}.png'
 st.image(forecast_fig, aption= 'Inventory Planner', width=1000)
 
 ### Creating a link to download the data or plot
