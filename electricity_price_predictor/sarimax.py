@@ -23,9 +23,9 @@ def sarimax_forecast(df):
     # forecast for next time point only
     future = future.iloc[:1,:]
     if future.temp.isnull()[0]: # when weather forecast data is not available for that hour
-        forecast = np.array([np.nan])
-        lower = np.array([np.nan])
-        upper = np.array([np.nan])
+        forecast = np.nan
+        lower = np.nan
+        upper = np.nan
         print('weather data is not available')
     else:
         past.index = pd.DatetimeIndex(past.index.values,
@@ -96,5 +96,3 @@ if __name__=='__main__':
     blob.upload_from_filename(fig)
     location = f'gs://{BUCKET_NAME}/forecast/{fig}'
     print(colored(f'forecast figure uploaded to cloud storage \n => {location}', 'blue'))
-    os.remove(data)
-    os.remove(fig)
