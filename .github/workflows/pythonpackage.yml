@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: akhileshns/deploy-heroku@v3.0.4
-      with:
-        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-        heroku_app_name: "electricity_price_predictor"
-        heroku_email: "g.yimingjiang@gmail.com"
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "electricity_price_predictor"
+          heroku_email: "g.yimingjiang@gmail.com"
