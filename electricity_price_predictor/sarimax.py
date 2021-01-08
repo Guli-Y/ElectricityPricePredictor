@@ -31,7 +31,7 @@ def sarimax_forecast(df):
         past.index = pd.DatetimeIndex(past.index.values,
                                         freq=past.index.inferred_freq)
         # Build Model
-        sarima = SARIMAX(past.price, past.drop('price', axis=1),
+        sarima = SARIMAX(past.price, exog=past.drop('price', axis=1),
                      order=(1,1,1), seasonal_order=(1,0,2,7))
         sarima = sarima.fit(maxiter=300)
         # forecasting
@@ -77,6 +77,7 @@ def sarimax_forecast_24(df=None):
 if __name__=='__main__':
     forecast, past = sarimax_forecast_24()
     # save the forecast results locally
+    # save the forecast results locally
     today = date.today()
     data = f'forecast_{today}.csv'
     fig = f'forecast_{today}.png'
@@ -90,9 +91,13 @@ if __name__=='__main__':
     blob = bucket.blob('forecast/'+data)
     blob.upload_from_filename(data)
     location = f'gs://{BUCKET_NAME}/forecast/{data}'
-    print(colored(f'forecast data uploaded to cloud storage \n => {location}', 'green'))
+    blob.make_public()
+    print(colored(f'''forecast data uploaded to cloud storage and made public \n
+        => {location} \n => {blob.public_url}''', 'green'))
         # forecast figure
     blob = bucket.blob('forecast/'+fig)
     blob.upload_from_filename(fig)
     location = f'gs://{BUCKET_NAME}/forecast/{fig}'
-    print(colored(f'forecast figure uploaded to cloud storage \n => {location}', 'blue'))
+    blob.make_public()
+    print(colored(f'''forecast figure uploaded to cloud storage \n
+        => {location} \n => {blob.public_url}''', 'blue'))
