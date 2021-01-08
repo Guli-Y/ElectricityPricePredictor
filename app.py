@@ -5,6 +5,8 @@ from PIL import Image
 from datetime import date, timedelta
 import base64
 
+st.markdown("https://github.com/Guli-Y/ElectricityPricePredictor")
+
 st.set_page_config(page_title="electricity-price-predictor",
                     page_icon=":zap:",
                     layout="centered", # wide
@@ -83,3 +85,6 @@ def get_download_link(df):
     return f'<a href="data:file/csv;base64,{b64}" download="{today}.csv">Download csv file</a>'
 
 st.markdown(get_download_link(df), unsafe_allow_html=True)
+
+st.markdown(''' Please note that forecasting accuracy for 2020 is not very high
+    due to irregular demand of electricity caused by COVID-19''')
