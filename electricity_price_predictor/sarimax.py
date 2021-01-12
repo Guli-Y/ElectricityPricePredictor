@@ -5,7 +5,6 @@ import numpy as np
 from termcolor import colored
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from datetime import date
-import matplotlib.pyplot as plt
 from google.cloud import storage
 import os
 
@@ -76,28 +75,21 @@ def sarimax_forecast_24(df=None):
 
 if __name__=='__main__':
     forecast, past = sarimax_forecast_24()
-    # save the forecast results locally
+    figure = plot_forecast(forecast, past)
     # save the forecast results locally
     today = date.today()
-    data = f'forecast_{today}.csv'
-    fig = f'forecast_{today}.png'
+    data = f'forecast/forecast_{today}.csv'
+    fig = f'forecast/forecast_{today}.png'
     forecast.to_csv(data)
-    figure = plot_forecast(forecast, past)
     figure.savefig(fig)
     # upload to GCP cloud storage
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
-        # forecast data
-    blob = bucket.blob('forecast/'+data)
-    blob.upload_from_filename(data)
-    location = f'gs://{BUCKET_NAME}/forecast/{data}'
-    blob.make_public()
-    print(colored(f'''forecast data uploaded to cloud storage and made public \n
-        => {location} \n => {blob.public_url}''', 'green'))
-        # forecast figure
-    blob = bucket.blob('forecast/'+fig)
-    blob.upload_from_filename(fig)
-    location = f'gs://{BUCKET_NAME}/forecast/{fig}'
-    blob.make_public()
-    print(colored(f'''forecast figure uploaded to cloud storage \n
-        => {location} \n => {blob.public_url}''', 'blue'))
+    blob1 = bucket.blob(data)
+    blob1.upload_from_filename(data)
+    blob2 = bucket.blob(fig)
+    blob2.upload_from_filename(fig)
+    # print locations
+    location = f'gs://{BUCKET_NAME}/forecast/'
+    print(colored(f'''forecast data and figure uploaded to cloud storage  \n
+        => {location}''', 'green'))
