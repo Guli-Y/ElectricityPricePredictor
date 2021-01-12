@@ -46,7 +46,7 @@ def call_dayahead_price(start, stop, key=ENSTOSE_API_KEY ):
         ))['Publication_MarketDocument']['TimeSeries']['Period']
     # get prices
     price = result['Point']
-    price = pd.DataFrame(price)['price.amount']
+    price = pd.DataFrame(price)['price.amount'].astype('float')
     #Get time index
     begin = result['timeInterval']['start']
     end = result['timeInterval']['end']
@@ -54,7 +54,7 @@ def call_dayahead_price(start, stop, key=ENSTOSE_API_KEY ):
     #conv to local
     time_index = time_index.tz_convert('Europe/Copenhagen')
     # format extra strings at the end
-    time_index = pd.Series(time_index).apply(lambda x: str(x)[:19])
+    time_index = pd.Series(time_index).astype('str').str[:19]
     price_df = price.to_frame(name='price').set_index(pd.DatetimeIndex(time_index))
     return price_df
 
