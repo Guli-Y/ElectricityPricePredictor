@@ -5,14 +5,12 @@ from PIL import Image
 from datetime import date, timedelta
 import base64
 
+# st.set_page_config(page_title="electricity-price-predictor",
+#                     page_icon=":zap:",
+#                     layout="centered", # wide
+#                     initial_sidebar_state="expanded") # collapsed
+
 st.markdown("https://github.com/Guli-Y/ElectricityPricePredictor")
-
-st.set_page_config(page_title="electricity-price-predictor",
-                    page_icon=":zap:",
-                    layout="centered", # wide
-                    initial_sidebar_state="expanded") # collapsed
-
-
 ### sidebar
 st.markdown(
     """
