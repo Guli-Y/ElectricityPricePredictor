@@ -6,8 +6,9 @@ update_heroku:
 	git push heroku master
 
 # ----------------------------------
-#          GCP
+#      Training on GCP or locally
 # ----------------------------------
+
 JOB_NAME=electricity_price_predictor_$(shell date +'%Y%m%d_%H%M')
 BUCKET_NAME=electricity_price_predictor
 BUCKET_TRAINING_FOLDER=trainings
@@ -15,12 +16,7 @@ PACKAGE_NAME=electricity_price_predictor
 FILENAME=sarimax
 PYTHON_VERSION=3.7
 RUNTIME_VERSION=2.3
-REGION=europe-west1
-
-train_local:
-	python -m ${PACKAGE_NAME}.${FILENAME}
-	python -m ${PACKAGE_NAME}.make_public
-	start "https://electricity-price-predictor.herokuapp.com/"
+REGION=europe-west4
 
 train_on_gcp:
 	gcloud ai-platform jobs submit training ${JOB_NAME} \
@@ -32,7 +28,12 @@ train_on_gcp:
 					--region ${REGION}
 
 	python -m ${PACKAGE_NAME}.make_public
-	start "https://electricity-price-predictor.herokuapp.com/"
+	explorer.exe "https://electricity-price-predictor.herokuapp.com/"
+
+train_local:
+	python -m ${PACKAGE_NAME}.${FILENAME}
+	python -m ${PACKAGE_NAME}.make_public
+	explorer.exe "https://electricity-price-predictor.herokuapp.com/"
 # ----------------------------------
 #          INSTALL & TEST
 # ----------------------------------
