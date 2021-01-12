@@ -19,6 +19,7 @@ REGION=europe-west1
 
 train_local:
 	python -m ${PACKAGE_NAME}.${FILENAME}
+	python -m ${PACKAGE_NAME}.make_public
 	start "https://electricity-price-predictor.herokuapp.com/"
 
 train_on_gcp:
@@ -29,6 +30,8 @@ train_on_gcp:
 					--python-version=${PYTHON_VERSION} \
 					--runtime-version=${RUNTIME_VERSION} \
 					--region ${REGION}
+
+	python -m ${PACKAGE_NAME}.make_public
 	start "https://electricity-price-predictor.herokuapp.com/"
 # ----------------------------------
 #          INSTALL & TEST
