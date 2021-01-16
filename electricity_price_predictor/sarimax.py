@@ -78,16 +78,16 @@ if __name__=='__main__':
     figure = plot_forecast(forecast, past)
     # save the forecast results locally
     today = date.today()
-    data = f'forecast/forecast_{today}.csv'
-    fig = f'forecast/forecast_{today}.png'
+    data = f'forecast_{today}.csv'
+    fig = f'forecast_{today}.png'
     forecast.to_csv(data)
     figure.savefig(fig)
     # upload to GCP cloud storage
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
-    blob1 = bucket.blob(data)
+    blob1 = bucket.blob('forecast/'+data)
     blob1.upload_from_filename(data)
-    blob2 = bucket.blob(fig)
+    blob2 = bucket.blob('forecast/'+fig)
     blob2.upload_from_filename(fig)
     # print locations
     location = f'gs://{BUCKET_NAME}/forecast/'
