@@ -11,6 +11,7 @@ import base64
 #                     initial_sidebar_state="expanded") # collapsed
 
 st.markdown("https://github.com/Guli-Y/ElectricityPricePredictor")
+st.markdown(":no_entry:Since 15t Jan 2021, we have terminated the daily update")
 ### sidebar
 st.markdown(
     """
