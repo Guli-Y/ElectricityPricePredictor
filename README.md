@@ -8,10 +8,11 @@ using data from Entose Transparency Platform and OpenWeatherMap. It includes dat
 feature engineering, training time series model, evaluating model performance using walk-forward validation,
 and continuious deployment on Heroku.
 
-If you are interested in our web app, check this out https://electricity-price-predictor.herokuapp.com/
+web app :point_right: https://electricity-price-predictor.herokuapp.com/
 
-If you are interested in our final presentation, check out our slide https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing
+presentation :point_right: https://docs.google.com/presentation/d/1LzwVxNeJ9FzhfXJTaiTVQ-xDzbNQjwrejzYSZsak8YQ/edit?usp=sharing
 
+demo day video (40:00 - 51:00) :point_right: https://youtu.be/mP9EG9zj6mo
 
 # Data sources
 
