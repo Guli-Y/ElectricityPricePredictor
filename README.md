@@ -7,7 +7,7 @@ This project is about developing a model for forecasting day-ahead electricity p
 using data from Entose Transparency Platform and OpenWeatherMap. It includes data sourcing and exploration,
 feature engineering, training time series model, evaluating model performance using walk-forward validation,
 and continuious deployment on Heroku.
-[forecast_validation_figure](walk_forward_validation_6m.png)
+![forecast_validation_figure](walk_forward_validation_6m.png)
 
 web app :point_right: https://electricity-price-predictor.herokuapp.com/
 
